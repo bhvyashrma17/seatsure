@@ -1,0 +1,39 @@
+{
+  "name": "@seatsure/db",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Advanced Database layer: PostgreSQL schema + migrations (Prisma 7), seed data, SQL analytics, MongoDB (Mongoose) models",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy && prisma generate",
+    "migrate:reset": "prisma migrate reset --force",
+    "seed": "tsx prisma/seed.ts",
+    "studio": "prisma studio",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "bench:explain": "tsx scripts/explain-benchmark.ts",
+    "experiment:pool": "tsx scripts/pool-experiment.ts",
+    "experiment:race": "tsx scripts/race-experiment.ts"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "dotenv": "^17.2.0",
+    "mongoose": "^9.11.4",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.23.1",
+    "mongodb-memory-server": "^11.3.0",
+    "prisma": "7.10.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.5"
+  }
+}

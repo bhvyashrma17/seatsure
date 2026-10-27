@@ -1,0 +1,80 @@
+[
+  {
+    "id": "catalogue",
+    "title": "Catalogue page: next 12 upcoming published events",
+    "indexes": [
+      "events_published_starts_at_idx",
+      "events_published_category_starts_at_idx"
+    ],
+    "beforeMs": 2.636,
+    "afterMs": 0.006,
+    "speedup": 439.3,
+    "beforePlan": [
+      "Limit",
+      "Sort",
+      "Seq Scan"
+    ],
+    "afterPlan": [
+      "Limit",
+      "Index Scan (events_published_starts_at_idx)"
+    ]
+  },
+  {
+    "id": "catalogue-category",
+    "title": "Catalogue filtered by a rare category (HACKATHON, ~2% of events)",
+    "indexes": [
+      "events_published_category_starts_at_idx"
+    ],
+    "beforeMs": 0.023,
+    "afterMs": 0.006,
+    "speedup": 3.8,
+    "beforePlan": [
+      "Limit",
+      "Index Scan (events_published_starts_at_idx)"
+    ],
+    "afterPlan": [
+      "Limit",
+      "Index Scan (events_published_category_starts_at_idx)"
+    ]
+  },
+  {
+    "id": "jsonb-answers",
+    "title": "Who chose the Jain meal? JSONB containment over all registrations",
+    "indexes": [
+      "registrations_answers_gin_idx"
+    ],
+    "beforeMs": 13.6,
+    "afterMs": 0.119,
+    "speedup": 114.3,
+    "beforePlan": [
+      "Aggregate",
+      "Seq Scan"
+    ],
+    "afterPlan": [
+      "Aggregate",
+      "Bitmap Heap Scan",
+      "Bitmap Index Scan (registrations_answers_gin_idx)"
+    ]
+  },
+  {
+    "id": "attendees",
+    "title": "Attendee page: one event's confirmed list in registration order",
+    "indexes": [
+      "registrations_event_id_status_created_at_idx",
+      "registrations_one_active_per_user_key"
+    ],
+    "beforeMs": 4.285,
+    "afterMs": 0.009,
+    "speedup": 476.1,
+    "beforePlan": [
+      "Limit",
+      "Gather Merge",
+      "Sort",
+      "Seq Scan"
+    ],
+    "afterPlan": [
+      "Limit",
+      "Index Scan (registrations_event_id_status_created_at_idx)"
+    ]
+  }
+]

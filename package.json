@@ -1,0 +1,34 @@
+{
+  "name": "seatsure",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SeatSure - concurrency-safe campus event registration (integrated micro project: Full Stack + Backend + Advanced Database)",
+  "type": "module",
+  "workspaces": [
+    "db",
+    "server",
+    "client"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "setup": "npm run db:create && npm run db:migrate && npm run db:seed",
+    "db:create": "node scripts/create-databases.mjs",
+    "db:migrate": "npm run migrate:deploy -w @seatsure/db",
+    "db:seed": "npm run seed -w @seatsure/db",
+    "db:reset": "npm run migrate:reset -w @seatsure/db && npm run seed -w @seatsure/db",
+    "dev": "concurrently -n server,client -c blue,magenta \"npm run dev -w @seatsure/server\" \"npm run dev -w @seatsure/client\"",
+    "build": "npm run build -w @seatsure/client",
+    "test": "npm run test:db && npm run test:server && npm run test:client",
+    "test:db": "npm run test -w @seatsure/db",
+    "test:server": "npm run test -w @seatsure/server",
+    "test:client": "npm run test -w @seatsure/client",
+    "demo:concurrency": "node scripts/concurrency-demo.mjs",
+    "bench:explain": "npm run bench:explain -w @seatsure/db",
+    "report:bundle": "node scripts/bundle-report.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}

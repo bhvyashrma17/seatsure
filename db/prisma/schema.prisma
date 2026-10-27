@@ -1,0 +1,185 @@
+// SeatSure relational model.
+// [DATABASE M2.3: Prisma schema & migrations] Declarative source of truth for the PostgreSQL tables.
+// [DATABASE M1.3-1.6: Relational foundations, ER model, 3NF, keys & constraints] See docs/er-diagram.md.
+// CHECK constraints cannot be expressed in Prisma's schema language, so they live in the
+// hand-written migration prisma/migrations/*_integrity_checks/migration.sql. Partial and GIN
+// indexes are declared below (preview feature "partialIndexes"), so migrations keep them.
+
+generator client {
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  // Lets the schema declare partial indexes (WHERE ...), so `migrate dev` keeps them.
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// [DATABASE M2.5: Enums] Stored as native PostgreSQL enum types.
+enum Role {
+  STUDENT
+  ORGANISER
+}
+
+enum EventCategory {
+  WORKSHOP
+  HACKATHON
+  TALK
+  COMPETITION
+  CULTURAL
+  SPORTS
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+}
+
+enum RegistrationStatus {
+  CONFIRMED
+  WAITLISTED
+  CANCELLED
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(80)
+  email       String   @unique @db.VarChar(120)
+  role        Role     @default(STUDENT)
+  department  String?  @db.VarChar(80)
+  yearOfStudy Int?     @map("year_of_study") @db.SmallInt
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  registrations Registration[]
+  clubRoles     ClubOrganiser[]
+  createdEvents Event[]         @relation("EventCreatedBy")
+
+  @@map("users")
+}
+
+model Club {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(80)
+  slug        String   @unique @db.VarChar(80)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organisers ClubOrganiser[]
+  events     Event[]
+
+  @@map("clubs")
+}
+
+// Junction table for the many-to-many "user organises club" relationship.
+// Composite primary key: a user can be an organiser of a club at most once.
+model ClubOrganiser {
+  clubId   Int      @map("club_id")
+  userId   Int      @map("user_id")
+  title    String   @default("Coordinator") @db.VarChar(40)
+  joinedAt DateTime @default(now()) @map("joined_at") @db.Timestamptz(3)
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([clubId, userId])
+  @@index([userId])
+  @@map("club_organisers")
+}
+
+// Venues are their own entity (3NF): building/capacity are facts about the room,
+// not about any one event, so they are stored once instead of on every event row.
+model Venue {
+  id       Int     @id @default(autoincrement())
+  name     String  @unique @db.VarChar(80)
+  building String  @db.VarChar(80)
+  capacity Int
+  events   Event[]
+
+  @@map("venues")
+}
+
+model Event {
+  id                   Int           @id @default(autoincrement())
+  clubId               Int           @map("club_id")
+  venueId              Int           @map("venue_id")
+  createdById          Int           @map("created_by_id")
+  title                String        @db.VarChar(120)
+  description          String
+  category             EventCategory
+  status               EventStatus   @default(DRAFT)
+  startsAt             DateTime      @map("starts_at") @db.Timestamptz(3)
+  endsAt               DateTime      @map("ends_at") @db.Timestamptz(3)
+  registrationClosesAt DateTime?     @map("registration_closes_at") @db.Timestamptz(3)
+  capacity             Int
+  // Controlled denormalisation: kept equal to COUNT(confirmed registrations) inside the same
+  // transaction that changes a registration, and guarded by CHECK (confirmed_count <= capacity).
+  confirmedCount       Int           @default(0) @map("confirmed_count")
+  // [DATABASE M1.9: JSONB] Per-event custom questions; the shape differs per event.
+  questions            Json          @default("[]")
+  publishedAt          DateTime?     @map("published_at") @db.Timestamptz(3)
+  createdAt            DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  club          Club           @relation(fields: [clubId], references: [id], onDelete: Restrict)
+  venue         Venue          @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  createdBy     User           @relation("EventCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  registrations Registration[]
+
+  // [DATABASE M1.10: Composite index] Organiser dashboard: a club's events in date order.
+  @@index([clubId, startsAt])
+  // [DATABASE M1.10: Partial + composite indexes] The public catalogue only ever reads PUBLISHED
+  // events ordered by (starts_at, id) (also the keyset used for cursor pagination), so the
+  // index skips drafts/cancelled rows entirely. Before/after plans: docs/test-results/explain-analyze-*.txt.
+  @@index([startsAt, id], where: raw("status = 'PUBLISHED'"), map: "events_published_starts_at_idx")
+  @@index([category, startsAt, id], where: raw("status = 'PUBLISHED'"), map: "events_published_category_starts_at_idx")
+  @@map("events")
+}
+
+model Registration {
+  id          Int                @id @default(autoincrement())
+  eventId     Int                @map("event_id")
+  userId      Int                @map("user_id")
+  status      RegistrationStatus
+  // [DATABASE M1.9: JSONB] Answers to the event's custom questions, e.g. {"tshirt":"M","laptop":true}.
+  answers     Json               @default("{}")
+  promotedAt  DateTime?          @map("promoted_at") @db.Timestamptz(3)
+  checkedInAt DateTime?          @map("checked_in_at") @db.Timestamptz(3)
+  cancelledAt DateTime?          @map("cancelled_at") @db.Timestamptz(3)
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // [DATABASE M1.10: Composite indexes] Waitlist order / attendee lists, and "my passes".
+  @@index([eventId, status, createdAt])
+  @@index([userId, createdAt(sort: Desc)])
+  // [DATABASE M1.10 + M1.6: Partial UNIQUE index] At most one *active* registration per student per
+  // event, while cancelled rows are kept as history (a student may cancel and register again).
+  @@unique([eventId, userId], where: raw("status <> 'CANCELLED'"), map: "registrations_one_active_per_user_key")
+  // [DATABASE M1.9: GIN index on JSONB] Organisers filter attendees by an answer: answers @> '{"tshirt":"M"}'.
+  @@index([answers(ops: JsonbPathOps)], type: Gin, map: "registrations_answers_gin_idx")
+  @@map("registrations")
+}
+
+// Transactional outbox: written in the same transaction as the business change, then
+// delivered to MongoDB by the dispatcher. Solves the dual-write problem ([DATABASE M3.19]).
+model OutboxEvent {
+  id          BigInt    @id @default(autoincrement())
+  // Globally unique idempotency key sent to MongoDB. Unlike `id`, it never repeats, even after
+  // the PostgreSQL tables are re-seeded (sequences restart, a persistent MongoDB does not).
+  messageId   String    @unique @default(dbgenerated("gen_random_uuid()")) @map("message_id") @db.Uuid
+  type        String    @db.VarChar(60)
+  payload     Json
+  attempts    Int       @default(0)
+  lastError   String?   @map("last_error")
+  availableAt DateTime  @default(now()) @map("available_at") @db.Timestamptz(3)
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  // Dispatcher poll: "pending rows that are due", oldest first. Published rows are never indexed.
+  @@index([availableAt, id], where: raw("published_at IS NULL"), map: "outbox_events_pending_idx")
+  @@map("outbox_events")
+}

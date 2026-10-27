@@ -1,0 +1,22 @@
+SeatSure - live concurrency demo (2026-10-26 15:48 IST)
+Command: npm run demo:concurrency -- --seats 10 --students 50   (API running on localhost:4000)
+
+
+Event #31: 10 seats. Firing 50 registrations at the same moment...
+
+┌────────────────┬────────┐
+│ (index)        │ Values │
+├────────────────┼────────┤
+│ requests       │ 50     │
+│ HTTP 201       │ 50     │
+│ confirmed      │ 10     │
+│ waitlisted     │ 40     │
+│ errors         │ 0      │
+│ wall time (ms) │ 414    │
+└────────────────┴────────┘
+Waitlist positions handed out: 1..40 (40 unique)
+Database says: confirmedCount=10/10, waitlist=40
+Seat counter mismatches across all events: 0
+
+✓ No overbooking: exactly 10 confirmed, everyone else waitlisted in order.
+

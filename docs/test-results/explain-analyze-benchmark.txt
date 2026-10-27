@@ -1,0 +1,132 @@
+SeatSure index benchmark - 2026-10-26T09:59:33.454Z
+PostgreSQL 18.4 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit
+Data: 50,000 events (60% published), 1,000 users, 200,000 registrations
+
+------------------------------------------------------------------------------
+Catalogue page: next 12 upcoming published events
+Indexes measured: events_published_starts_at_idx, events_published_category_starts_at_idx
+SQL: SELECT id, title, starts_at FROM events WHERE status = 'PUBLISHED' AND starts_at >= now() ORDER BY starts_at, id LIMIT 13
+------------------------------------------------------------------------------
+BEFORE (index dropped): 2.636 ms
+Limit (actual time=2.587..2.587 rows=13.00 loops=1)
+  Buffers: shared hit=1064
+  ->  Sort (actual time=2.587..2.587 rows=13.00 loops=1)
+        Sort Key: starts_at, id
+        Sort Method: top-N heapsort  Memory: 25kB
+        Buffers: shared hit=1064
+        ->  Seq Scan on events (actual time=0.817..1.882 rows=15000.00 loops=1)
+              Filter: ((status = 'PUBLISHED'::"EventStatus") AND (starts_at >= now()))
+              Rows Removed by Filter: 35000
+              Buffers: shared hit=1064
+Planning Time: 0.027 ms
+Execution Time: 2.590 ms
+
+AFTER (index present):  0.006 ms
+Limit (actual time=0.003..0.005 rows=13.00 loops=1)
+  Buffers: shared hit=4
+  ->  Index Scan using events_published_starts_at_idx on events (actual time=0.003..0.004 rows=13.00 loops=1)
+        Index Cond: (starts_at >= now())
+        Index Searches: 1
+        Buffers: shared hit=4
+Planning Time: 0.017 ms
+Execution Time: 0.007 ms
+
+Speed-up: 439.3x
+
+------------------------------------------------------------------------------
+Catalogue filtered by a rare category (HACKATHON, ~2% of events)
+Indexes measured: events_published_category_starts_at_idx
+SQL: SELECT id, title, starts_at FROM events WHERE status = 'PUBLISHED' AND category = 'HACKATHON' AND starts_at >= now() ORDER BY starts_at, id LIMIT 13
+------------------------------------------------------------------------------
+BEFORE (index dropped): 0.023 ms
+Limit (actual time=0.004..0.021 rows=13.00 loops=1)
+  Buffers: shared hit=18
+  ->  Index Scan using events_published_starts_at_idx on events (actual time=0.004..0.021 rows=13.00 loops=1)
+        Index Cond: (starts_at >= now())
+        Filter: (category = 'HACKATHON'::"EventCategory")
+        Rows Removed by Filter: 377
+        Index Searches: 1
+        Buffers: shared hit=18
+Planning Time: 0.011 ms
+Execution Time: 0.023 ms
+
+AFTER (index present):  0.006 ms
+Limit (actual time=0.002..0.004 rows=13.00 loops=1)
+  Buffers: shared hit=15
+  ->  Index Scan using events_published_category_starts_at_idx on events (actual time=0.002..0.004 rows=13.00 loops=1)
+        Index Cond: ((category = 'HACKATHON'::"EventCategory") AND (starts_at >= now()))
+        Index Searches: 1
+        Buffers: shared hit=15
+Planning Time: 0.014 ms
+Execution Time: 0.006 ms
+
+Speed-up: 3.8x
+
+------------------------------------------------------------------------------
+Who chose the Jain meal? JSONB containment over all registrations
+Indexes measured: registrations_answers_gin_idx
+SQL: SELECT count(*) FROM registrations WHERE answers @> '{"diet": "Jain"}'
+------------------------------------------------------------------------------
+BEFORE (index dropped): 13.600 ms
+Aggregate (actual time=13.494..13.494 rows=1.00 loops=1)
+  Buffers: shared hit=2667
+  ->  Seq Scan on registrations (actual time=0.008..13.483 rows=400.00 loops=1)
+        Filter: (answers @> '{"diet": "Jain"}'::jsonb)
+        Rows Removed by Filter: 199600
+        Buffers: shared hit=2667
+Planning Time: 0.026 ms
+Execution Time: 13.501 ms
+
+AFTER (index present):  0.119 ms
+Aggregate (actual time=0.107..0.107 rows=1.00 loops=1)
+  Buffers: shared hit=396
+  ->  Bitmap Heap Scan on registrations (actual time=0.023..0.098 rows=400.00 loops=1)
+        Recheck Cond: (answers @> '{"diet": "Jain"}'::jsonb)
+        Heap Blocks: exact=394
+        Buffers: shared hit=396
+        ->  Bitmap Index Scan on registrations_answers_gin_idx (actual time=0.014..0.014 rows=400.00 loops=1)
+              Index Cond: (answers @> '{"diet": "Jain"}'::jsonb)
+              Index Searches: 1
+              Buffers: shared hit=2
+Planning:
+  Buffers: shared hit=1
+Planning Time: 0.008 ms
+Execution Time: 0.109 ms
+
+Speed-up: 114.3x
+
+------------------------------------------------------------------------------
+Attendee page: one event's confirmed list in registration order
+Indexes measured: registrations_event_id_status_created_at_idx, registrations_one_active_per_user_key
+SQL: SELECT id, user_id, created_at FROM registrations WHERE event_id = $1 AND status = 'CONFIRMED' ORDER BY created_at LIMIT 20
+------------------------------------------------------------------------------
+BEFORE (index dropped): 4.285 ms
+Limit (actual time=3.680..4.307 rows=20.00 loops=1)
+  Buffers: shared hit=2705
+  ->  Gather Merge (actual time=3.680..4.306 rows=20.00 loops=1)
+        Workers Planned: 1
+        Workers Launched: 1
+        Buffers: shared hit=2705
+        ->  Sort (actual time=2.987..2.987 rows=10.00 loops=2)
+              Sort Key: created_at
+              Sort Method: top-N heapsort  Memory: 26kB
+              Buffers: shared hit=2705
+              Worker 0:  Sort Method: quicksort  Memory: 25kB
+              ->  Parallel Seq Scan on registrations (actual time=1.708..2.955 rows=400.00 loops=2)
+                    Filter: ((event_id = 42) AND (status = 'CONFIRMED'::"RegistrationStatus"))
+                    Rows Removed by Filter: 99600
+                    Buffers: shared hit=2667
+Planning Time: 0.043 ms
+Execution Time: 4.314 ms
+
+AFTER (index present):  0.009 ms
+Limit (actual time=0.004..0.006 rows=20.00 loops=1)
+  Buffers: shared hit=23
+  ->  Index Scan using registrations_event_id_status_created_at_idx on registrations (actual time=0.004..0.005 rows=20.00 loops=1)
+        Index Cond: ((event_id = 42) AND (status = 'CONFIRMED'::"RegistrationStatus"))
+        Index Searches: 1
+        Buffers: shared hit=23
+Planning Time: 0.013 ms
+Execution Time: 0.008 ms
+
+Speed-up: 476.1x

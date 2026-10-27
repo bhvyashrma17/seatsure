@@ -1,0 +1,6 @@
+{
+  "watch": ["src", "../db/src"],
+  "ext": "js,ts,json",
+  "exec": "tsx src/server.js",
+  "delay": 300
+}

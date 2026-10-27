@@ -1,0 +1,11 @@
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+coverage/
+db/generated/
+*.log
+.DS_Store
+.vite/
+.claude/

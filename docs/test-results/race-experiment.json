@@ -1,0 +1,40 @@
+{
+  "capacity": 3,
+  "rows": [
+    {
+      "requests": 2,
+      "naive": 2,
+      "locked": 2,
+      "naiveMs": 42,
+      "lockedMs": 54
+    },
+    {
+      "requests": 5,
+      "naive": 5,
+      "locked": 3,
+      "naiveMs": 33,
+      "lockedMs": 119
+    },
+    {
+      "requests": 10,
+      "naive": 10,
+      "locked": 3,
+      "naiveMs": 42,
+      "lockedMs": 246
+    },
+    {
+      "requests": 20,
+      "naive": 10,
+      "locked": 3,
+      "naiveMs": 69,
+      "lockedMs": 489
+    },
+    {
+      "requests": 40,
+      "naive": 10,
+      "locked": 3,
+      "naiveMs": 124,
+      "lockedMs": 964
+    }
+  ]
+}

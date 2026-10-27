@@ -1,0 +1,123 @@
+------------------------------------------------------------------------------
+Catalogue page: next 12 upcoming published events
+Indexes measured: events_published_starts_at_idx, events_published_category_starts_at_idx
+SQL: SELECT id, title, starts_at FROM events WHERE status = 'PUBLISHED' AND starts_at >= now() ORDER BY starts_at, id LIMIT 13
+------------------------------------------------------------------------------
+BEFORE (index dropped): 3.393 ms
+Limit (actual time=3.008..3.010 rows=13.00 loops=1)
+  Buffers: shared hit=639
+  ->  Sort (actual time=3.007..3.009 rows=13.00 loops=1)
+        Sort Key: starts_at, id
+        Sort Method: top-N heapsort  Memory: 25kB
+        Buffers: shared hit=639
+        ->  Seq Scan on events (actual time=0.949..2.248 rows=9000.00 loops=1)
+              Filter: ((status = 'PUBLISHED'::"EventStatus") AND (starts_at >= now()))
+              Rows Removed by Filter: 21000
+              Buffers: shared hit=639
+Planning Time: 0.043 ms
+Execution Time: 3.017 ms
+
+AFTER (index present):  0.011 ms
+Limit (actual time=0.004..0.006 rows=13.00 loops=1)
+  Buffers: shared hit=3
+  ->  Index Scan using events_published_starts_at_idx on events (actual time=0.004..0.005 rows=13.00 loops=1)
+        Index Cond: (starts_at >= now())
+        Index Searches: 1
+        Buffers: shared hit=3
+Planning Time: 0.027 ms
+Execution Time: 0.010 ms
+
+Speed-up: 308.5x
+
+------------------------------------------------------------------------------
+Catalogue filtered by a rare category (HACKATHON, ~2% of events)
+Indexes measured: events_published_category_starts_at_idx
+SQL: SELECT id, title, starts_at FROM events WHERE status = 'PUBLISHED' AND category = 'HACKATHON' AND starts_at >= now() ORDER BY starts_at, id LIMIT 13
+------------------------------------------------------------------------------
+BEFORE (index dropped): 0.044 ms
+Limit (actual time=0.007..0.041 rows=13.00 loops=1)
+  Buffers: shared hit=17
+  ->  Index Scan using events_published_starts_at_idx on events (actual time=0.007..0.040 rows=13.00 loops=1)
+        Index Cond: (starts_at >= now())
+        Filter: (category = 'HACKATHON'::"EventCategory")
+        Rows Removed by Filter: 377
+        Index Searches: 1
+        Buffers: shared hit=17
+Planning Time: 0.022 ms
+Execution Time: 0.044 ms
+
+AFTER (index present):  0.010 ms
+Limit (actual time=0.003..0.007 rows=13.00 loops=1)
+  Buffers: shared hit=15
+  ->  Index Scan using events_published_category_starts_at_idx on events (actual time=0.003..0.006 rows=13.00 loops=1)
+        Index Cond: ((category = 'HACKATHON'::"EventCategory") AND (starts_at >= now()))
+        Index Searches: 1
+        Buffers: shared hit=15
+Planning Time: 0.028 ms
+Execution Time: 0.010 ms
+
+Speed-up: 4.4x
+
+------------------------------------------------------------------------------
+Who chose the Jain meal? JSONB containment over all registrations
+Indexes measured: registrations_answers_gin_idx
+SQL: SELECT count(*) FROM registrations WHERE answers @> '{"diet": "Jain"}'
+------------------------------------------------------------------------------
+BEFORE (index dropped): 16.071 ms
+Aggregate (actual time=15.479..15.481 rows=1.00 loops=1)
+  Buffers: shared hit=1334
+  ->  Seq Scan on registrations (actual time=0.015..15.457 rows=202.00 loops=1)
+        Filter: (answers @> '{"diet": "Jain"}'::jsonb)
+        Rows Removed by Filter: 99798
+        Buffers: shared hit=1334
+Planning Time: 0.085 ms
+Execution Time: 15.499 ms
+
+AFTER (index present):  0.172 ms
+Aggregate (actual time=0.138..0.138 rows=1.00 loops=1)
+  Buffers: shared hit=204
+  ->  Bitmap Heap Scan on registrations (actual time=0.037..0.128 rows=202.00 loops=1)
+        Recheck Cond: (answers @> '{"diet": "Jain"}'::jsonb)
+        Heap Blocks: exact=202
+        Buffers: shared hit=204
+        ->  Bitmap Index Scan on registrations_answers_gin_idx (actual time=0.017..0.017 rows=202.00 loops=1)
+              Index Cond: (answers @> '{"diet": "Jain"}'::jsonb)
+              Index Searches: 1
+              Buffers: shared hit=2
+Planning:
+  Buffers: shared hit=1
+Planning Time: 0.045 ms
+Execution Time: 0.148 ms
+
+Speed-up: 93.4x
+
+------------------------------------------------------------------------------
+Attendee page: one event's confirmed list in registration order
+Indexes measured: registrations_event_id_status_created_at_idx, registrations_one_active_per_user_key
+SQL: SELECT id, user_id, created_at FROM registrations WHERE event_id = $1 AND status = 'CONFIRMED' ORDER BY created_at LIMIT 20
+------------------------------------------------------------------------------
+BEFORE (index dropped): 5.260 ms
+Limit (actual time=5.183..5.185 rows=20.00 loops=1)
+  Buffers: shared hit=1334
+  ->  Sort (actual time=5.183..5.184 rows=20.00 loops=1)
+        Sort Key: created_at
+        Sort Method: top-N heapsort  Memory: 26kB
+        Buffers: shared hit=1334
+        ->  Seq Scan on registrations (actual time=0.838..5.145 rows=320.00 loops=1)
+              Filter: ((event_id = 42) AND (status = 'CONFIRMED'::"RegistrationStatus"))
+              Rows Removed by Filter: 99680
+              Buffers: shared hit=1334
+Planning Time: 0.036 ms
+Execution Time: 5.191 ms
+
+AFTER (index present):  0.021 ms
+Limit (actual time=0.007..0.010 rows=20.00 loops=1)
+  Buffers: shared hit=4
+  ->  Index Scan using registrations_event_id_status_created_at_idx on registrations (actual time=0.006..0.008 rows=20.00 loops=1)
+        Index Cond: ((event_id = 42) AND (status = 'CONFIRMED'::"RegistrationStatus"))
+        Index Searches: 1
+        Buffers: shared hit=4
+Planning Time: 0.026 ms
+Execution Time: 0.013 ms
+
+Speed-up: 250.5x

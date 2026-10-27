@@ -1,0 +1,62 @@
+SeatSure - Advanced Database test run (2026-10-26 15:57 IST)
+Command: npm run test:db  (vitest, PostgreSQL 18.4 test database + in-memory MongoDB 8.2)
+
+
+ RUN  v5.0.5 /Users/bhavya-mac/Library/Application Support/Claude/scratch-workspaces/a58b660e-d3f6-4e01-b109-50215fe17b1d/50bdc7e8-3790-4e2e-805e-3ecc96ab6cfd/scratch-2026-10-26-f27014/seatsure/db
+
+ ✓ tests/indexes.test.ts > EXPLAIN ANALYZE: before vs after each index > DB-I01 partial index turns the catalogue query from a full scan + sort into an index scan 25ms
+ ✓ tests/indexes.test.ts > EXPLAIN ANALYZE: before vs after each index > DB-I02 composite (category, starts_at, id) index jumps straight to a rare category 4ms
+ ✓ tests/indexes.test.ts > EXPLAIN ANALYZE: before vs after each index > DB-I03 GIN index answers JSONB containment (@>) without scanning every registration 55ms
+ ✓ tests/indexes.test.ts > EXPLAIN ANALYZE: before vs after each index > DB-I04 (event_id, status, created_at) index returns an attendee page already in order 26ms
+ ✓ tests/indexes.test.ts > EXPLAIN ANALYZE: before vs after each index > DB-I05 the partial indexes really are partial (only PUBLISHED / only active rows) 5ms
+ ✓ tests/mongo.test.ts > Mongoose schema: validators and middleware hooks > DB-M01 rejects documents that break the schema (enum, required, min) 15ms
+ ✓ tests/mongo.test.ts > Mongoose schema: validators and middleware hooks > DB-M02 a pre-validate hook gives every notification an expiry 30 days out 10ms
+ ✓ tests/mongo.test.ts > database-level rules > DB-M03 $jsonSchema rejects a bad document even when Mongoose is bypassed 6ms
+ ✓ tests/mongo.test.ts > database-level rules > DB-M04 the TTL index deletes expired notifications automatically 1029ms
+ ✓ tests/mongo.test.ts > database-level rules > DB-M05 delivery is idempotent: the same outbox message never creates two notifications 9ms
+ ✓ tests/mongo.test.ts > aggregation pipelines > DB-M06 $match + $facet returns totals, per-action counts and top events in one query 14ms
+ ✓ tests/mongo.test.ts > aggregation pipelines > DB-M07 scoping by club happens in the first $match stage 7ms
+ ✓ tests/mongo.test.ts > aggregation pipelines > DB-M08 $lookup joins promotions to their notifications and counts unread ones 6ms
+ ✓ tests/mongo.test.ts > index design proven with explain() > DB-M09 the event feed query uses the compound index instead of scanning the collection 55ms
+ ✓ tests/mongo.test.ts > index design proven with explain() > DB-M10 an activity keeps an embedded snapshot of the event as it was 5ms
+ ✓ tests/transactions.test.ts > atomicity and rollback > DB-T01 rolls back every write when a later step fails 327ms
+ ✓ tests/transactions.test.ts > atomicity and rollback > DB-T02 rolls back when the database itself refuses a step (CHECK violation mid-transaction) 115ms
+ ✓ tests/transactions.test.ts > atomicity and rollback > DB-T03 nested write creates a club and its organiser link together or not at all 86ms
+ ✓ tests/transactions.test.ts > race conditions under concurrency > DB-T04 reproduces the oversell race when there is no lock 195ms
+ ✓ tests/transactions.test.ts > race conditions under concurrency > DB-T05 never oversells with SELECT ... FOR UPDATE (same concurrency, same delay) 438ms
+ ✓ tests/transactions.test.ts > MVCC and isolation levels (two real connections) > DB-T06 READ COMMITTED: a second read inside one transaction sees a value committed meanwhile 200ms
+ ✓ tests/transactions.test.ts > MVCC and isolation levels (two real connections) > DB-T07 REPEATABLE READ: the snapshot stays stable, and a conflicting write fails with 40001 106ms
+ ✓ tests/transactions.test.ts > MVCC and isolation levels (two real connections) > DB-T08 FOR UPDATE makes a second writer wait until the first commits 391ms
+ ✓ tests/queries.test.ts > cursor pagination, filtering and sorting > DB-Q01 walks every upcoming published event exactly once, in start order 275ms
+ ✓ tests/queries.test.ts > cursor pagination, filtering and sorting > DB-Q02 filters by category, club, availability and title search 62ms
+ ✓ tests/queries.test.ts > cursor pagination, filtering and sorting > DB-Q03 sorts by popularity with a unique tiebreaker 38ms
+ ✓ tests/queries.test.ts > window functions and CTEs > DB-Q04 numbers the waitlist with ROW_NUMBER() and renumbers after someone leaves 39ms
+ ✓ tests/queries.test.ts > window functions and CTEs > DB-Q05 ranks events by fill rate overall and within each club 34ms
+ ✓ tests/queries.test.ts > window functions and CTEs > DB-Q06 builds a gap-free daily series with a running total (generate_series + SUM() OVER) 28ms
+ ✓ tests/queries.test.ts > window functions and CTEs > DB-Q07 ranks clubs with DENSE_RANK and computes attendance only for past events 29ms
+ ✓ tests/queries.test.ts > relation loading and JSONB filtering > DB-Q08 loads passes with event, club and venue in a constant number of queries (no N+1) 93ms
+ ✓ tests/queries.test.ts > relation loading and JSONB filtering > DB-Q09 filters attendees by JSONB answers and returns the total with COUNT(*) OVER () 30ms
+ ✓ tests/queries.test.ts > relation loading and JSONB filtering > DB-Q11 timestamps written through Prisma are stored as the exact instant (UTC session) 30ms
+ ✓ tests/queries.test.ts > relation loading and JSONB filtering > DB-Q10 the integrity probe detects a seat counter that drifted from the real rows 25ms
+ ✓ tests/constraints.test.ts > CHECK constraints > DB-C01 rejects a venue with zero capacity 144ms
+ ✓ tests/constraints.test.ts > CHECK constraints > DB-C02 rejects an event that ends before it starts 50ms
+ ✓ tests/constraints.test.ts > CHECK constraints > DB-C03 makes overbooking impossible: confirmed_count can never exceed capacity 29ms
+ ✓ tests/constraints.test.ts > CHECK constraints > DB-C04 requires event questions to be a JSON array 27ms
+ ✓ tests/constraints.test.ts > CHECK constraints > DB-C05 keeps cancelled_at consistent with the CANCELLED status 24ms
+ ✓ tests/constraints.test.ts > CHECK constraints > DB-C06 only allows checking in confirmed attendees 22ms
+ ✓ tests/constraints.test.ts > UNIQUE and FOREIGN KEY constraints > DB-C07 allows only one active registration per student per event (partial unique index) 22ms
+ ✓ tests/constraints.test.ts > UNIQUE and FOREIGN KEY constraints > DB-C08 lets a student register again after cancelling (cancelled rows are outside the partial index) 28ms
+ ✓ tests/constraints.test.ts > UNIQUE and FOREIGN KEY constraints > DB-C09 rejects a registration for an event that does not exist (foreign key) 17ms
+ ✓ tests/constraints.test.ts > UNIQUE and FOREIGN KEY constraints > DB-C10 rejects a duplicate email 20ms
+ ✓ tests/constraints.test.ts > UNIQUE and FOREIGN KEY constraints > DB-C11 refuses to delete a club that still has events (ON DELETE RESTRICT) 21ms
+ ✓ tests/constraints.test.ts > UNIQUE and FOREIGN KEY constraints > DB-C12 removes registrations with their event (ON DELETE CASCADE) 20ms
+ ✓ tests/constraints.test.ts > error classification > DB-C13 classifies a pool acquire timeout as a retryable-in-spirit TIMEOUT (mapped to HTTP 503) 14ms
+
+ Test Files  5 passed (5)
+      Tests  47 passed (47)
+   Start at  15:57:48
+   Duration  15.33s (tests 90%, import 9%, transform 1%)
+
+    Isolate  5 workers spawned · ~214ms startup each (spawn + environment, per file)
+             at least ~854ms faster with isolate: false — reuses workers across files instead of one per file
+

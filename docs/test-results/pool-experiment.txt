@@ -1,0 +1,13 @@
+Connection pool experiment - 2026-10-26T10:24:07.293Z
+40 concurrent queries, each SELECT pg_sleep(0.1)
+
+pool size | wall time (ms) | expected ≈ ceil(40/N)×100 | failed
+        1 |           4106 |                      4000 | 0
+        5 |            829 |                       800 | 0
+       10 |            423 |                       400 | 0
+       20 |            235 |                       200 | 0
+       40 |            153 |                       100 | 0
+
+Pool of 2, 20 queries × 1 s, 5 s acquire timeout: 10 succeeded, 10 gave up (TIMEOUT)
+Conclusion: the pool caps concurrent connections (protecting PostgreSQL); more connections help only up to the
+point where the database itself is the bottleneck, and the acquire timeout turns overload into a fast, visible error.

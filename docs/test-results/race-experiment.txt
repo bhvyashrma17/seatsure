@@ -1,0 +1,9 @@
+Race-condition experiment - 2026-10-26T21:52:05.604Z
+Event capacity: 3 seats. Each transaction pauses 20 ms between reading and writing. Pool size: 10.
+
+simultaneous requests | confirmed (no lock) | confirmed (FOR UPDATE) | time no lock (ms) | time FOR UPDATE (ms)
+                    2 |                   2 |                      2 |                42 |                   54
+                    5 |                   5 |                      3 |                33 |                  119
+                   10 |                  10 |                      3 |                42 |                  246
+                   20 |                  10 |                      3 |                69 |                  489
+                   40 |                  10 |                      3 |               124 |                  964
