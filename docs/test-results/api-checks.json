@@ -1,17 +1,73 @@
 {
   "api": "http://localhost:4000/api/v1",
-  "ranAt": "2026-10-27T03:14:15.484Z",
+  "ranAt": "2026-10-27T04:13:46.840Z",
   "rows": [
     {
       "id": "API-01",
-      "operation": "Read (list)",
-      "request": "GET /events?limit=3",
-      "expected": "200, 3 events + nextCursor",
-      "actual": "200 3 events, nextCursor 31",
+      "operation": "Create",
+      "request": "POST /tasks {title:\"Buy notebook\"}",
+      "expected": "201 new task",
+      "actual": "201 id 48, completed false, Location /api/v1/tasks/48",
       "result": "Pass"
     },
     {
       "id": "API-02",
+      "operation": "Invalid input",
+      "request": "POST /tasks {title:\"\"}",
+      "expected": "400 error",
+      "actual": "400 VALIDATION_ERROR: Title is required",
+      "result": "Pass"
+    },
+    {
+      "id": "API-03",
+      "operation": "Missing ID",
+      "request": "DELETE /tasks/99",
+      "expected": "404 not found",
+      "actual": "404 TASK_NOT_FOUND",
+      "result": "Pass"
+    },
+    {
+      "id": "API-04",
+      "operation": "Read",
+      "request": "GET /tasks",
+      "expected": "200, my tasks incl. \"Buy notebook\"",
+      "actual": "200 6 tasks (5 to do, 1 done)",
+      "result": "Pass"
+    },
+    {
+      "id": "API-05",
+      "operation": "Update (toggle)",
+      "request": "PATCH /tasks/48 {completed:true}",
+      "expected": "200, done with completedAt",
+      "actual": "200 completed true, completedAt set",
+      "result": "Pass"
+    },
+    {
+      "id": "API-06",
+      "operation": "Update (edit)",
+      "request": "PATCH /tasks/48 {title:\"Buy two notebooks\"}",
+      "expected": "200, new title",
+      "actual": "200 \"Buy two notebooks\"",
+      "result": "Pass"
+    },
+    {
+      "id": "API-07",
+      "operation": "Delete",
+      "request": "DELETE /tasks/48",
+      "expected": "204 No Content",
+      "actual": "204 No Content",
+      "result": "Pass"
+    },
+    {
+      "id": "API-08",
+      "operation": "Read (events)",
+      "request": "GET /events?limit=3",
+      "expected": "200, 3 events + nextCursor",
+      "actual": "200 3 events, nextCursor 4",
+      "result": "Pass"
+    },
+    {
+      "id": "API-09",
       "operation": "Create",
       "request": "POST /events {title:\"API check: Git workshop\", …}",
       "expected": "201 + Location, status DRAFT",
@@ -19,7 +75,7 @@
       "result": "Pass"
     },
     {
-      "id": "API-03",
+      "id": "API-10",
       "operation": "Invalid input",
       "request": "POST /events {title:\"\", capacity:0, …}",
       "expected": "400 VALIDATION_ERROR for title and capacity",
@@ -27,7 +83,7 @@
       "result": "Pass"
     },
     {
-      "id": "API-04",
+      "id": "API-11",
       "operation": "Read (one)",
       "request": "GET /events/32",
       "expected": "200, the new draft",
@@ -35,7 +91,7 @@
       "result": "Pass"
     },
     {
-      "id": "API-05",
+      "id": "API-12",
       "operation": "Update",
       "request": "PATCH /events/32 {title:\"… (updated)\"}",
       "expected": "200, new title",
@@ -43,7 +99,7 @@
       "result": "Pass"
     },
     {
-      "id": "API-06",
+      "id": "API-13",
       "operation": "Delete",
       "request": "DELETE /events/32",
       "expected": "204 No Content",
@@ -51,7 +107,7 @@
       "result": "Pass"
     },
     {
-      "id": "API-07",
+      "id": "API-14",
       "operation": "Missing ID",
       "request": "DELETE /events/32 (again)",
       "expected": "404 not found",
@@ -59,7 +115,7 @@
       "result": "Pass"
     },
     {
-      "id": "API-08",
+      "id": "API-15",
       "operation": "Update (workflow)",
       "request": "PATCH /events/33 {status:\"PUBLISHED\"}",
       "expected": "200, PUBLISHED",
@@ -67,7 +123,7 @@
       "result": "Pass"
     },
     {
-      "id": "API-09",
+      "id": "API-16",
       "operation": "Create (registration)",
       "request": "POST /events/33/registrations {answers:{}}",
       "expected": "201, CONFIRMED",
@@ -75,7 +131,7 @@
       "result": "Pass"
     },
     {
-      "id": "API-10",
+      "id": "API-17",
       "operation": "Duplicate",
       "request": "Same request again",
       "expected": "409 ALREADY_REGISTERED",
@@ -83,7 +139,7 @@
       "result": "Pass"
     },
     {
-      "id": "API-11",
+      "id": "API-18",
       "operation": "Missing user",
       "request": "Same request without X-User-Id",
       "expected": "401",
@@ -91,15 +147,15 @@
       "result": "Pass"
     },
     {
-      "id": "API-12",
+      "id": "API-19",
       "operation": "Delete (cancel)",
-      "request": "DELETE /registrations/2567",
+      "request": "DELETE /registrations/2517",
       "expected": "200, cancelled",
       "actual": "200 previous status CONFIRMED",
       "result": "Pass"
     },
     {
-      "id": "API-13",
+      "id": "API-20",
       "operation": "Missing ID",
       "request": "DELETE /registrations/99999",
       "expected": "404 not found",
@@ -107,7 +163,7 @@
       "result": "Pass"
     },
     {
-      "id": "API-14",
+      "id": "API-21",
       "operation": "Unknown route",
       "request": "GET /does-not-exist",
       "expected": "404 ROUTE_NOT_FOUND",

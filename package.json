@@ -6,8 +6,8 @@
   "type": "module",
   "workspaces": [
     "db",
-    "server",
-    "client"
+    "backend",
+    "frontend"
   ],
   "engines": {
     "node": ">=22.12.0"
@@ -20,18 +20,18 @@
     "db:seed:if-empty": "npm run seed:if-empty -w @seatsure/db",
     "db:deploy": "npm run db:migrate && npm run db:seed:if-empty",
     "db:reset": "npm run migrate:reset -w @seatsure/db && npm run seed -w @seatsure/db",
-    "dev": "concurrently -n server,client -c blue,magenta \"npm run dev -w @seatsure/server\" \"npm run dev -w @seatsure/client\"",
-    "build": "npm run build -w @seatsure/client",
-    "test": "npm run test:db && npm run test:server && npm run test:client",
+    "dev": "concurrently -n backend,frontend -c blue,magenta \"npm run dev -w @seatsure/backend\" \"npm run dev -w @seatsure/frontend\"",
+    "build": "npm run build -w @seatsure/frontend",
+    "test": "npm run test:db && npm run test:backend && npm run test:frontend",
     "test:db": "npm run test -w @seatsure/db",
-    "test:server": "npm run test -w @seatsure/server",
-    "test:client": "npm run test -w @seatsure/client",
+    "test:backend": "npm run test -w @seatsure/backend",
+    "test:frontend": "npm run test -w @seatsure/frontend",
     "demo:concurrency": "node scripts/concurrency-demo.mjs",
     "test:api": "node scripts/api-checks.mjs",
     "bench:explain": "npm run bench:explain -w @seatsure/db",
     "report:bundle": "node scripts/bundle-report.mjs",
-    "build:production": "npm run generate -w @seatsure/db && npm run build -w @seatsure/client",
-    "start:production": "NODE_ENV=production npm run start -w @seatsure/server"
+    "build:production": "npm run generate -w @seatsure/db && npm run build -w @seatsure/frontend",
+    "start:production": "NODE_ENV=production npm run start -w @seatsure/backend"
   },
   "devDependencies": {
     "concurrently": "^10.0.6"

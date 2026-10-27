@@ -22,7 +22,7 @@ const CAPACITY = 3;
 const LEVELS = [2, 5, 10, 20, 40];
 
 async function reset() {
-  await prisma.$executeRawUnsafe('TRUNCATE outbox_events, registrations, events, club_organisers, venues, clubs, users RESTART IDENTITY CASCADE');
+  await prisma.$executeRawUnsafe('TRUNCATE tasks, outbox_events, registrations, events, club_organisers, venues, clubs, users RESTART IDENTITY CASCADE');
   const club = await prisma.club.create({ data: { name: 'Race Club', slug: 'race-club' } });
   const venue = await prisma.venue.create({ data: { name: 'Race Hall', building: 'R', capacity: 100 } });
   const organiser = await prisma.user.create({ data: { name: 'Race Organiser', email: 'race@example.edu', role: 'ORGANISER' } });
@@ -74,7 +74,7 @@ for (const n of LEVELS) {
   }
   rows.push({ requests: n, naive: results.naive!, locked: results.locked!, naiveMs: results.naiveMs!, lockedMs: results.lockedMs! });
 }
-await prisma.$executeRawUnsafe('TRUNCATE outbox_events, registrations, events, club_organisers, venues, clubs, users RESTART IDENTITY CASCADE');
+await prisma.$executeRawUnsafe('TRUNCATE tasks, outbox_events, registrations, events, club_organisers, venues, clubs, users RESTART IDENTITY CASCADE');
 await prisma.$disconnect();
 
 const lines = [

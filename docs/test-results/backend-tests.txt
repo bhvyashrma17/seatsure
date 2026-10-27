@@ -1,79 +1,14 @@
-SeatSure - Backend test run (2026-10-26 15:47 IST)
-Command: npm run test:server  (vitest + supertest; unit tests use in-memory fakes, integration tests use PostgreSQL + in-memory MongoDB)
+SeatSure - Back-End test run (2026-10-27 09:44 IST)
+Command: npm run test:backend -- --reporter=verbose  (vitest + supertest, PostgreSQL 18.4 test database + in-memory MongoDB 8.2)
+
+ RUN  v5.0.5 /Users/bhavya-mac/Library/Application Support/Claude/scratch-workspaces/a58b660e-d3f6-4e01-b109-50215fe17b1d/50bdc7e8-3790-4e2e-805e-3ecc96ab6cfd/scratch-2026-10-26-f27014/seatsure/backend
 
 
- RUN  v5.0.5 /Users/bhavya-mac/Library/Application Support/Claude/scratch-workspaces/a58b660e-d3f6-4e01-b109-50215fe17b1d/50bdc7e8-3790-4e2e-805e-3ecc96ab6cfd/scratch-2026-10-26-f27014/seatsure/server
+ Test Files  9 passed (9)
+      Tests  71 passed (71)
+   Start at  09:44:09
+   Duration  7.33s (tests 69%, import 29%, transform 1%)
 
- ✓ tests/integration/api.test.js > platform > BE-I01 health reports both databases and the seat-counter integrity check 270ms
- ✓ tests/integration/api.test.js > platform > BE-I02 every response carries X-Request-Id; unknown routes get the 404 envelope 63ms
- ✓ tests/integration/api.test.js > platform > BE-I03 the unversioned /api/events still works but is marked deprecated 68ms
- ✓ tests/integration/api.test.js > events catalogue > BE-I04 lists published upcoming events only, with cursor pagination metadata 123ms
- ✓ tests/integration/api.test.js > events catalogue > BE-I05 filters by category and validates query parameters 64ms
- ✓ tests/integration/api.test.js > events catalogue > BE-I06 hides drafts from students but shows them to the club organiser 80ms
- ✓ tests/integration/api.test.js > organiser event management > BE-I07 students cannot create events (403); organisers get 201 + Location 82ms
- ✓ tests/integration/api.test.js > organiser event management > BE-I08 rejects invalid input with a field list and ignores mass-assignment attempts 63ms
- ✓ tests/integration/api.test.js > organiser event management > BE-I09 capacity above the venue is a 422 with a field error 57ms
- ✓ tests/integration/api.test.js > organiser event management > BE-I10 publishing follows the workflow; deleting a published event is refused 88ms
- ✓ tests/integration/api.test.js > organiser event management > BE-I11 an organiser of another club cannot edit the event (403) 56ms
- ✓ tests/integration/api.test.js > registration workflow > BE-I12 requires a known user (401) and a valid X-User-Id (400) 65ms
- ✓ tests/integration/api.test.js > registration workflow > BE-I13 confirms, then waitlists once full; a client cannot pick its own status 129ms
- ✓ tests/integration/api.test.js > registration workflow > BE-I14 duplicate registration is a 409; bad answers are a 422 with field paths 88ms
- ✓ tests/integration/api.test.js > registration workflow > BE-I15 cancelling a confirmed seat promotes the first person on the waitlist 165ms
- ✓ tests/integration/api.test.js > registration workflow > BE-I16 organiser check-in is idempotent and blocked outside the check-in window 115ms
- ✓ tests/integration/api.test.js > registration workflow > BE-I17 attendee list: offset pagination, JSONB answer filter, organiser-only 127ms
- ✓ tests/integration/api.test.js > registration workflow > BE-I18 streams a CSV export with one line per registration 103ms
- ✓ tests/integration/api.test.js > registration workflow > BE-I19 analytics are organiser-only and return window-function results 74ms
- ✓ tests/integration/api.test.js > registration workflow > BE-I20 the seat counter always matches the real confirmed rows after mixed operations 148ms
- ✓ tests/integration/concurrency.test.js > concurrent requests > BE-I21 50 students registering at the same instant for 3 seats: exactly 3 confirmed 751ms
- ✓ tests/integration/concurrency.test.js > concurrent requests > BE-I22 one student double-clicking 10 times gets exactly one registration 128ms
- ✓ tests/integration/concurrency.test.js > concurrent requests > BE-I23 simultaneous cancellations promote different waitlisted students (no double promotion) 200ms
- ✓ tests/integration/reliability.test.js > outbox to MongoDB > BE-I24 a registration reaches the student's notifications and the event feed via the outbox 352ms
- ✓ tests/integration/reliability.test.js > outbox to MongoDB > BE-I25 MongoDB outage: registrations still work, reads degrade, and nothing is lost on recovery 157ms
- ✓ tests/integration/reliability.test.js > outbox to MongoDB > BE-I26 a waitlist promotion notifies the promoted student 154ms
- ✓ tests/unit/middleware.test.js > pipeline middleware > BE-U24 tags every response with X-Request-Id and X-Response-Time 42ms
- ✓ tests/unit/middleware.test.js > pipeline middleware > BE-U25 reuses a well-formed incoming request id but replaces a suspicious one 11ms
- ✓ tests/unit/middleware.test.js > pipeline middleware > BE-U26 validate() returns 400 listing every invalid field, and drops unknown fields 26ms
- ✓ tests/unit/middleware.test.js > central error handler > BE-U27 turns AppError into the standard envelope with its status 6ms
- ✓ tests/unit/middleware.test.js > central error handler > BE-U28 maps database errors: unique -> 409, missing -> 404, busy -> 503 11ms
- ✓ tests/unit/middleware.test.js > central error handler > BE-U29 hides programmer errors behind a generic 500 (no stack, no SQL) 8ms
- ✓ tests/unit/middleware.test.js > central error handler > BE-U30 handles malformed JSON (400), oversized bodies (413) and unknown routes (404) 8ms
- ✓ tests/unit/reliability.test.js > retry and timeout helpers > BE-U31 retries transient failures with growing delays, then succeeds 18ms
- ✓ tests/unit/reliability.test.js > retry and timeout helpers > BE-U32 gives up after the retry budget and never retries permanent errors 6ms
- ✓ tests/unit/reliability.test.js > retry and timeout helpers > BE-U33 withTimeout rejects slow work and backoff caps at 60 s 22ms
- ✓ tests/unit/reliability.test.js > event bus (EventEmitter) > BE-U34 publish() waits for every subscriber and reports failures 1ms
- ✓ tests/unit/reliability.test.js > outbox dispatcher > BE-U35 delivers due messages in order and marks them published 1ms
- ✓ tests/unit/reliability.test.js > outbox dispatcher > BE-U36 on failure schedules a retry with backoff and stops the round 1ms
- ✓ tests/unit/reliability.test.js > outbox dispatcher > BE-U37 a stuck subscriber is cut off by the delivery timeout 31ms
- ✓ tests/unit/reliability.test.js > CSV export rows > BE-U38 quotes commas/quotes and neutralises spreadsheet formulas 1ms
- ✓ tests/unit/registrationService.test.js > register() > BE-U09 confirms while seats remain, then waitlists with positions 1, 2 7ms
- ✓ tests/unit/registrationService.test.js > register() > BE-U10 writes exactly one outbox message per registration and asks for delivery after commit 1ms
- ✓ tests/unit/registrationService.test.js > register() > BE-U11 rejects a second registration by the same student (409) 1ms
- ✓ tests/unit/registrationService.test.js > register() > BE-U12 validates answers against the event's own questions (422) 1ms
- ✓ tests/unit/registrationService.test.js > register() > BE-U13 retries a transaction that lost a write conflict, then succeeds 41ms
- ✓ tests/unit/registrationService.test.js > register() > BE-U14 does not retry business-rule failures 1ms
- ✓ tests/unit/registrationService.test.js > cancel() > BE-U15 hands a freed seat to the oldest waitlisted student in the same transaction 2ms
- ✓ tests/unit/registrationService.test.js > cancel() > BE-U16 frees the seat when nobody is waiting 1ms
- ✓ tests/unit/registrationService.test.js > cancel() > BE-U17 only the owner or a club organiser may cancel; never twice 2ms
- ✓ tests/unit/registrationService.test.js > cancel() > BE-U18 refuses to cancel once the event has started 1ms
- ✓ tests/unit/registrationService.test.js > checkIn() > BE-U19 is idempotent and organiser-only 1ms
- ✓ tests/unit/eventService.test.js > eventService > BE-U20 only organisers of the club can create its events 7ms
- ✓ tests/unit/eventService.test.js > eventService > BE-U21 capacity may not exceed the venue (422 with a field error) 1ms
- ✓ tests/unit/eventService.test.js > eventService > BE-U22 raising capacity promotes waitlisted people into the new seats 6ms
- ✓ tests/unit/eventService.test.js > eventService > BE-U23 publishing follows the workflow and stamps publishedAt 2ms
- ✓ tests/unit/eventRules.test.js > event workflow (state machine) > BE-U01 allows DRAFT -> PUBLISHED -> CANCELLED and nothing else 3ms
- ✓ tests/unit/eventRules.test.js > registration window > BE-U02 rejects drafts and closed registrations 1ms
- ✓ tests/unit/eventRules.test.js > registration window > BE-U03 opens check-in 2 hours before the start and closes it 2 hours after the end 0ms
- ✓ tests/unit/eventRules.test.js > seats and capacity > BE-U04 decides seat vs waitlist from confirmed count and capacity 1ms
- ✓ tests/unit/eventRules.test.js > seats and capacity > BE-U05 refuses to shrink capacity below confirmed attendees or beyond the venue 0ms
- ✓ tests/unit/eventRules.test.js > answers to custom questions (stored as JSONB) > BE-U06 cleans valid answers and coerces "true"/"false" 1ms
- ✓ tests/unit/eventRules.test.js > answers to custom questions (stored as JSONB) > BE-U07 reports every problem at once with field paths 0ms
- ✓ tests/unit/eventRules.test.js > answers to custom questions (stored as JSONB) > BE-U08 validates an organiser's question list (unique ids, options only for choices) 0ms
-
- Test Files  8 passed (8)
-      Tests  64 passed (64)
-   Start at  15:47:56
-   Duration  14.15s (tests 58%, import 40%, transform 2%)
-
-    Isolate  8 workers spawned · ~219ms startup each (spawn + environment, per file)
-             at least ~1.53s faster with isolate: false — reuses workers across files instead of one per file
+    Isolate  9 workers spawned · ~79ms startup each (spawn + environment, per file)
+             at least ~631ms faster with isolate: false — reuses workers across files instead of one per file
 

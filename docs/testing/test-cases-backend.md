@@ -1,7 +1,7 @@
 # Test cases: Back-End Web Development
 
-**Run:** 26 Oct 2026, `npm run test:server`.
-**Result: 64 / 64 passed.** Raw output: [`../test-results/backend-tests.txt`](../test-results/backend-tests.txt).
+**Run:** 27 Oct 2026, `npm run test:backend`.
+**Result: 71 / 71 passed.** Raw output: [`../test-results/backend-tests.txt`](../test-results/backend-tests.txt).
 
 The tests come in two kinds:
 - **Unit tests (`BE-U`)** build the services with in-memory fake repositories. No database is needed, which shows the repository pattern at work.
@@ -93,7 +93,19 @@ Module numbers refer to the Backend livebook (M1 foundations, M2 architecture, M
 | BE-I25 | M3.11 graceful degradation | MongoDB outage, then recovery | Disconnect, register, read, reconnect, drain | Register 201; reads `degraded:true`; health mongo down; outbox keeps messages; delivered after recovery | As expected (this test found the outbox-id bug, DECISIONS.md D-11) | Pass |
 | BE-I26 | M3.12 | Promotion notification | Cancel a confirmed seat | Promoted student gets `PROMOTED_FROM_WAITLIST` | As expected | Pass |
 
-## Live system demo (not counted in the 64)
+## Tasks: CRUD over REST (integration, `tests/integration/tasks.test.js`)
+
+| ID | Concept | Scenario | Input | Expected | Actual | Pass/Fail |
+|---|---|---|---|---|---|---|
+| BE-I27 | M1.13 create, M1.15 status codes | Create a task | `POST /api/v1/tasks {title:"Buy notebook"}` | 201 + `Location: /api/v1/tasks/:id`, stored open | As expected | Pass |
+| BE-I28 | M2.5 validation | Empty title | `POST /api/v1/tasks {title:""}` | 400 `VALIDATION_ERROR`, field `title` ("Title is required"); nothing stored | As expected | Pass |
+| BE-I29 | M1.13 read, M3.3 trust boundary | List my tasks | 2 own tasks (1 done) + 1 of another user | 200, only my 2 tasks, open first; `meta {total 2, open 1, done 1}` | As expected | Pass |
+| BE-I30 | M1.14 update | Edit and tick done, then reopen | `PATCH {title, completed:true}`, then `{completed:false}` | 200; `completedAt` set, then cleared | As expected | Pass |
+| BE-I31 | M1.14 delete, M1.15 | Delete twice; missing id | `DELETE /api/v1/tasks/:id` ×2; `DELETE /api/v1/tasks/99` | 204, then 404 `TASK_NOT_FOUND`; 404 | As expected | Pass |
+| BE-I32 | M3.3 trust boundary, M2.6 mass assignment | Another user's task; smuggled `userId` | GET/PATCH/DELETE as another student | 404 for all three; stored owner = caller | As expected | Pass |
+| BE-I33 | M2.5 validation, M2.4 auth placeholder | Empty update; bad date; no user | `PATCH {}`; `dueDate:"next friday"`; no `X-User-Id` | 400 `EMPTY_UPDATE`; 400 field `dueDate`; 401 | As expected | Pass |
+
+## Live system demo (not counted in the 71)
 
 `npm run demo:concurrency -- --seats 10 --students 50` against the running API (output: [`../test-results/concurrency-demo.txt`](../test-results/concurrency-demo.txt)):
 

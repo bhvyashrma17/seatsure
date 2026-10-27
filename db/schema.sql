@@ -1,5 +1,5 @@
 -- SeatSure PostgreSQL schema (tables, enums, keys, CHECK constraints, partial/composite/GIN indexes).
--- Generated on 27 Oct 2026 from the applied Prisma migrations with:
+-- Generated on 27 Oct 2026 (after the tasks migration) from the applied Prisma migrations with:
 --   pg_dump --schema-only --no-owner --no-privileges --exclude-table=_prisma_migrations seatsure_dev
 -- The source of truth is db/prisma/schema.prisma + db/prisma/migrations/. The usual way to build the
 -- database is `npm run setup` (create, migrate, seed). To use this file instead:
@@ -251,6 +251,45 @@ ALTER SEQUENCE public.registrations_id_seq OWNED BY public.registrations.id;
 
 
 --
+-- Name: tasks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tasks (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    title character varying(120) NOT NULL,
+    notes character varying(500),
+    due_date date,
+    completed boolean DEFAULT false NOT NULL,
+    completed_at timestamp(3) with time zone,
+    created_at timestamp(3) with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(3) with time zone NOT NULL,
+    CONSTRAINT tasks_completed_at_chk CHECK ((completed = (completed_at IS NOT NULL))),
+    CONSTRAINT tasks_title_not_blank_chk CHECK ((length(btrim((title)::text)) > 0))
+);
+
+
+--
+-- Name: tasks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tasks_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tasks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tasks_id_seq OWNED BY public.tasks.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -349,6 +388,13 @@ ALTER TABLE ONLY public.registrations ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: tasks id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tasks ALTER COLUMN id SET DEFAULT nextval('public.tasks_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -400,6 +446,14 @@ ALTER TABLE ONLY public.outbox_events
 
 ALTER TABLE ONLY public.registrations
     ADD CONSTRAINT registrations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tasks tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tasks
+    ADD CONSTRAINT tasks_pkey PRIMARY KEY (id);
 
 
 --
@@ -503,6 +557,13 @@ CREATE INDEX registrations_user_id_created_at_idx ON public.registrations USING 
 
 
 --
+-- Name: tasks_user_id_completed_created_at_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tasks_user_id_completed_created_at_idx ON public.tasks USING btree (user_id, completed, created_at);
+
+
+--
 -- Name: users_email_key; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -570,6 +631,14 @@ ALTER TABLE ONLY public.registrations
 
 ALTER TABLE ONLY public.registrations
     ADD CONSTRAINT registrations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: tasks tasks_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tasks
+    ADD CONSTRAINT tasks_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --

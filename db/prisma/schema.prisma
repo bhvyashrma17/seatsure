@@ -55,6 +55,7 @@ model User {
   registrations Registration[]
   clubRoles     ClubOrganiser[]
   createdEvents Event[]         @relation("EventCreatedBy")
+  tasks         Task[]
 
   @@map("users")
 }
@@ -182,4 +183,25 @@ model OutboxEvent {
   // Dispatcher poll: "pending rows that are due", oldest first. Published rows are never indexed.
   @@index([availableAt, id], where: raw("published_at IS NULL"), map: "outbox_events_pending_idx")
   @@map("outbox_events")
+}
+
+// Personal to-do tasks: every user can create, view, update (edit or tick done) and delete their own.
+// The CHECK constraints (non-blank title, completed_at set exactly when done) are in migration *_tasks.
+model Task {
+  id          Int       @id @default(autoincrement())
+  userId      Int       @map("user_id")
+  title       String    @db.VarChar(120)
+  notes       String?   @db.VarChar(500)
+  dueDate     DateTime? @map("due_date") @db.Date
+  completed   Boolean   @default(false)
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  // Deleting a user deletes their tasks.
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // [DATABASE M1.10: Composite index] "My tasks" reads one user's tasks, open ones first.
+  @@index([userId, completed, createdAt])
+  @@map("tasks")
 }

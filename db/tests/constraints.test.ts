@@ -120,3 +120,24 @@ describe('error classification', () => {
     expect(toDbError(new Error('some unrelated bug'))).toBeNull();
   });
 });
+
+describe('tasks', () => {
+  it('DB-C14 rejects a task whose title is only spaces', async () => {
+    const err = await dbErrorOf(prisma.task.create({ data: { userId: base.students[0]!.id, title: '   ' } }));
+    expect(err?.kind).toBe('CHECK_VIOLATION');
+    expect(err?.constraint).toBe('tasks_title_not_blank_chk');
+  });
+
+  it('DB-C15 keeps completed_at in step with completed', async () => {
+    const err = await dbErrorOf(prisma.task.create({ data: { userId: base.students[0]!.id, title: 'Done without a date', completed: true } }));
+    expect(err?.kind).toBe('CHECK_VIOLATION');
+    expect(err?.constraint).toBe('tasks_completed_at_chk');
+  });
+
+  it("DB-C16 deleting a user also deletes that user's tasks (ON DELETE CASCADE)", async () => {
+    const user = base.students[0]!;
+    await prisma.task.createMany({ data: [{ userId: user.id, title: 'One' }, { userId: user.id, title: 'Two' }] });
+    await prisma.user.delete({ where: { id: user.id } });
+    expect(await prisma.task.count({ where: { userId: user.id } })).toBe(0);
+  });
+});

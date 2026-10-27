@@ -3,7 +3,7 @@ import { prisma } from '../src/client';
 
 export async function resetDb() {
   await prisma.$executeRawUnsafe(
-    'TRUNCATE outbox_events, registrations, events, club_organisers, venues, clubs, users RESTART IDENTITY CASCADE',
+    'TRUNCATE tasks, outbox_events, registrations, events, club_organisers, venues, clubs, users RESTART IDENTITY CASCADE',
   );
 }
 

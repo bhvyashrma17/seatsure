@@ -1,7 +1,7 @@
 # Test cases: Full Stack Web Development
 
-**Run:** 26 Oct 2026, `npm run test:client` (Vitest + React Testing Library + jsdom).
-**Result: 27 / 27 passed.** Raw output: [`../test-results/fullstack-tests.txt`](../test-results/fullstack-tests.txt).
+**Run:** 27 Oct 2026, `npm run test:frontend` (Vitest + React Testing Library + jsdom).
+**Result: 32 / 32 passed.** Raw output: [`../test-results/fullstack-tests.txt`](../test-results/fullstack-tests.txt).
 
 The service modules (Axios calls) are mocked in these tests, so each one checks React behaviour on its own: forms, the cache, routing and error handling. The real React ↔ Express ↔ database path is covered by the backend integration tests and by the screenshots of the running app, which are listed below the table. Module numbers refer to the Full Stack livebook.
 
@@ -34,6 +34,11 @@ The service modules (Axios calls) are mocked in these tests, so each one checks 
 | FS-T25 | M1.10 index redirect | Open `/` | — | Redirect to `/events` (catalogue heading) | As expected | Pass |
 | FS-T26 | M1.10 catch-all route | Unknown path | `/nowhere-at-all` | Lazy "Page not found" inside the layout | As expected | Pass |
 | FS-T27 | **M1.7 `React.memo` (measure first)** | List re-renders after a poll, then one event changes | 3 cards; same objects; then event 2 changes | No card re-renders for unchanged data; only card 2 re-renders | Render count 3 → 3 → 4 | Pass |
+| FS-T28 | M2.3 query, M3.5 rendering | My tasks list | 2 tasks (1 done) | Both rendered; tabs show To do 1, Done 1 | As expected | Pass |
+| FS-T29 | M1.6 RHF validation, M2.6 POST mutation | Add a task: empty, then valid | Click Add with no title; then "Buy notebook" | "Title is required", API **not** called; then `create({title:'Buy notebook', notes:'', dueDate:null})` and the list refetched | As expected | Pass |
+| FS-T30 | **M2.8 optimistic update + rollback** | Tick a task done; server refuses | Click the checkbox; PATCH rejects 500 | Checked **before** the response, unchecked again after the error | As expected | Pass |
+| FS-T31 | M2.7 DELETE mutation | Delete a task | Click Delete | `remove(1)`; task disappears after the refetch; "Task deleted" toast | As expected | Pass |
+| FS-T32 | M2.9 server errors on fields | Edit a task; server answers 400 | New title; field error for `title` | The server's message appears under the Title field of the edit form | As expected | Pass |
 
 ## End-to-end evidence from the running app (screenshots in `../screenshots/`)
 
@@ -52,3 +57,9 @@ The service modules (Axios calls) are mocked in these tests, so each one checks 
 | FS-E11 | M1.9 | Error boundary fallback around one chart | `13-error-boundary.png` |
 | FS-E12 | Reliability | MongoDB outage: notifications degraded, registration page still works | `14-…png`, `15-…png` |
 | FS-E13 | Responsive UI | 390 px phone layout | `16-mobile-catalogue.png`, `17-mobile-event-detail.png` |
+| FS-E14 | Tasks: Read | My tasks list with To do / Done counts | `22-tasks-list.png` |
+| FS-E15 | Tasks: validation | Empty title rejected before sending ("Title is required") | `23-task-validation.png` |
+| FS-E16 | Tasks: Create | "Buy notebook" added with notes and a due date | `24-task-created.png` |
+| FS-E17 | Tasks: Update | A task ticked done and another renamed ("Changes saved") | `25-task-updated.png` |
+| FS-E18 | Tasks: Delete | Task removed ("Task deleted") | `26-task-deleted.png` |
+| FS-E19 | Events: Create / Update / Delete | Organiser creates, edits and deletes a draft; a student cancels a registration | `18-…png` to `21-…png` |

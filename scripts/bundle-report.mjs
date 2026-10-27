@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// [FULLSTACK M1.8: Code splitting, measured] Builds the client with a Vite manifest and reports how much
+// [FULLSTACK M1.8: Code splitting, measured] Builds the frontend with a Vite manifest and reports how much
 // JavaScript (gzipped) a student downloads on a first visit to /events, and how much more the organiser
 // area adds when an organiser opens it. Writes docs/test-results/bundle-split.json.
 // Usage: npm run report:bundle
@@ -9,8 +9,8 @@ import { gzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const dist = `${root}client/dist/`;
-execSync('npx vite build --manifest', { cwd: `${root}client`, stdio: 'pipe' });
+const dist = `${root}frontend/dist/`;
+execSync('npx vite build --manifest', { cwd: `${root}frontend`, stdio: 'pipe' });
 const manifest = JSON.parse(readFileSync(`${dist}.vite/manifest.json`, 'utf8'));
 
 // Every JavaScript file a manifest entry needs before it can run (itself + static imports, recursively).

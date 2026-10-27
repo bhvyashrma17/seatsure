@@ -1,11 +1,11 @@
 # Test cases: Advanced Database Systems
 
-- **Run:** 26 Oct 2026, `npm run test:db`.
-- **Result: 47 / 47 passed.** Raw output is in [`../test-results/database-tests.txt`](../test-results/database-tests.txt).
+- **Run:** 27 Oct 2026, `SAVE_RESULTS=1 npm run test:db`.
+- **Result: 50 / 50 passed.** Raw output is in [`../test-results/database-tests.txt`](../test-results/database-tests.txt).
 - **Environment:** PostgreSQL 18.4 (dedicated `seatsure_test` database, migrated with `prisma migrate deploy` before the run; tables are emptied before each test) and MongoDB 8.2 (npm-distributed in-memory server).
 - **Module numbers** refer to the Advanced Database livebook (M1 PostgreSQL, M2 Prisma, M3 MongoDB).
 
-## Integrity constraints (`tests/constraints.test.ts`)
+## Integrity constraints, including the tasks table (`tests/constraints.test.ts`)
 
 | ID | Concept | Scenario | Input | Expected | Actual | Pass/Fail |
 |---|---|---|---|---|---|---|
@@ -22,6 +22,9 @@
 | DB-C11 | M1.6 `ON DELETE RESTRICT` | Delete a club that still has events | `DELETE club` | Refused | Refused (FK) | Pass |
 | DB-C12 | M1.6 `ON DELETE CASCADE` | Delete an event with registrations | `DELETE event` | Its registrations are removed | 0 registrations left | Pass |
 | DB-C13 | M2.19 structured error handling | Pool could not supply a connection in time | `Error('timeout exceeded when trying to connect')` | Classified as `TIMEOUT` (API answers 503); unrelated errors are not database errors | As expected | Pass |
+| DB-C14 | M1.6 CHECK constraint | Task with a blank title | `title = '   '` | Rejected by `tasks_title_not_blank_chk` | Rejected (23514) | Pass |
+| DB-C15 | M1.6 CHECK constraint | Task marked done without a completion time | `completed = true, completed_at = NULL` | Rejected by `tasks_completed_at_chk` | Rejected (23514) | Pass |
+| DB-C16 | M1.6 `ON DELETE CASCADE` | Delete a user who has tasks | 2 tasks, then `DELETE user` | The user's tasks are removed | 0 tasks left | Pass |
 
 ## Transactions, locking and isolation (`tests/transactions.test.ts`)
 
@@ -58,10 +61,10 @@ Each query runs twice on the same data. **Before:** inside a transaction that dr
 
 | ID | Concept | Scenario | Input | Expected | Actual | Pass/Fail |
 |---|---|---|---|---|---|---|
-| DB-I01 | M1.10 partial index, M1.15 EXPLAIN | Catalogue: next 12 published events | `WHERE status='PUBLISHED' AND starts_at >= now() ORDER BY starts_at, id LIMIT 13` | Seq Scan + Sort becomes Index Scan, faster | 3.393 ms → 0.011 ms (308.5×), `Index Scan using events_published_starts_at_idx` | Pass |
-| DB-I02 | M1.10 composite index | Rare category (HACKATHON ≈ 2 %) | Same, plus `category = 'HACKATHON'` | The composite index is chosen and is faster | 0.044 → 0.010 ms (4.4×), `events_published_category_starts_at_idx` | Pass |
-| DB-I03 | M1.9 GIN (`jsonb_path_ops`) | Who chose the Jain meal? | `answers @> '{"diet":"Jain"}'` over 100 k rows | Seq Scan becomes Bitmap Index Scan, faster | 16.071 → 0.172 ms (93.4×) | Pass |
-| DB-I04 | M1.10 composite index | Attendee page in registration order | `event_id = 42 AND status = 'CONFIRMED' ORDER BY created_at LIMIT 20` | Index Scan with no separate Sort | 5.260 → 0.021 ms (250.5×) | Pass |
+| DB-I01 | M1.10 partial index, M1.15 EXPLAIN | Catalogue: next 12 published events | `WHERE status='PUBLISHED' AND starts_at >= now() ORDER BY starts_at, id LIMIT 13` | Seq Scan + Sort becomes Index Scan, faster | 1.663 ms → 0.007 ms (237.6×), `Index Scan using events_published_starts_at_idx` | Pass |
+| DB-I02 | M1.10 composite index | Rare category (HACKATHON ≈ 2 %) | Same, plus `category = 'HACKATHON'` | The composite index is chosen and is faster | 0.023 → 0.005 ms (4.6×), `events_published_category_starts_at_idx` | Pass |
+| DB-I03 | M1.9 GIN (`jsonb_path_ops`) | Who chose the Jain meal? | `answers @> '{"diet":"Jain"}'` over 100 k rows | Seq Scan becomes Bitmap Index Scan, faster | 6.645 → 0.060 ms (110.8×) | Pass |
+| DB-I04 | M1.10 composite index | Attendee page in registration order | `event_id = 42 AND status = 'CONFIRMED' ORDER BY created_at LIMIT 20` | Index Scan with no separate Sort | 2.309 → 0.008 ms (288.6×) | Pass |
 | DB-I05 | M1.10 partial indexes | The definitions are really partial | `pg_indexes` | All 3 index definitions contain a `WHERE` clause | 3 / 3 | Pass |
 
 ## MongoDB (`tests/mongo.test.ts`)
@@ -79,7 +82,7 @@ Each query runs twice on the same data. **Before:** inside a transaction that dr
 | DB-M09 | M3.20 index design + `explain()` | Event feed query | 300 activities across 30 events | `IXSCAN` on `event.id_1_at_-1`, docs examined = docs returned | IXSCAN, 10 / 10 | Pass |
 | DB-M10 | M3.8 embedding | Activity keeps its event snapshot | Old title in the snapshot | Feed reads the embedded snapshot, no join | Snapshot returned unchanged | Pass |
 
-## Benchmark (system-level evidence, not counted in the 47)
+## Benchmark (system-level evidence, not counted in the 50)
 
 `npm run bench:explain` uses a throw-away `seatsure_bench` database with **50 000 events and 200 000 registrations**. Output: [`../test-results/explain-analyze-benchmark.txt`](../test-results/explain-analyze-benchmark.txt).
 

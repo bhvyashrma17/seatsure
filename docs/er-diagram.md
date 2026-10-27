@@ -11,6 +11,7 @@ erDiagram
     USERS ||--o{ EVENTS : "created by"
     EVENTS ||--o{ REGISTRATIONS : "has"
     USERS ||--o{ REGISTRATIONS : "makes"
+    USERS ||--o{ TASKS : "owns"
 
     USERS {
         int id PK
@@ -62,6 +63,16 @@ erDiagram
         timestamptz cancelled_at "set iff CANCELLED"
         timestamptz created_at
     }
+    TASKS {
+        int id PK
+        int user_id FK
+        varchar title "CHECK not blank"
+        varchar notes
+        date due_date
+        boolean completed
+        timestamptz completed_at "set iff completed"
+        timestamptz created_at
+    }
     OUTBOX_EVENTS {
         bigint id PK
         uuid message_id UK
@@ -78,6 +89,7 @@ erDiagram
 - **Club ↔ User (M:N).** A club has several organisers and a user can organise several clubs. The junction table `club_organisers` has a composite primary key `(club_id, user_id)`.
 - **Club → Event (1:N), Venue → Event (1:N).** Both use `ON DELETE RESTRICT`, so a club or venue with history can't vanish.
 - **Event → Registration (1:N), User → Registration (1:N).** Registrations use `ON DELETE CASCADE`, so they belong to their event.
+- **User → Task (1:N).** Each task belongs to one user and uses `ON DELETE CASCADE`: deleting a user deletes their personal to-do list.
 - **Outbox (standalone).** Messages reference events and users only inside their JSON payload. The outbox is a delivery queue, not part of the business model.
 
 ## Normalisation (ADB M1.5)
@@ -105,6 +117,7 @@ erDiagram
 | `events_time_order_chk`, `events_registration_closes_before_start_chk` | Time ranges make sense. |
 | `events_published_at_chk` | Anything that isn't a draft has a publication time. |
 | `events_questions_is_array_chk`, `registrations_answers_is_object_chk` | JSONB keeps its expected top-level shape. |
+| `tasks_title_not_blank_chk`, `tasks_completed_at_chk` | A task always has a visible title, and `completed_at` is set exactly when the task is done. |
 
 ## Indexes and why each exists (ADB M1.9, M1.10, M1.15)
 
@@ -117,6 +130,7 @@ erDiagram
 | `registrations_user_id_created_at_idx` (`created_at DESC`) | Composite | "My passes", newest first | |
 | `events_club_id_starts_at_idx` | Composite | Organiser dashboard (a club's events by date) | |
 | `outbox_events_pending_idx` on `(available_at, id) WHERE published_at IS NULL` | Partial | Dispatcher's "what is due?" poll. Published rows are never indexed. | |
+| `tasks_user_id_completed_created_at_idx` | Composite B-tree | "My tasks": one user's tasks, open ones first | |
 
 ## MongoDB collections (ADB M3)
 

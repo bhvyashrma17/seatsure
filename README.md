@@ -11,21 +11,23 @@ Clubs at Alliance University run workshops, hackathons and talks in rooms with a
 
 **SeatSure** is a web app where students browse events and register against a **hard seat cap that stays correct even when many people click "Register" at the same moment**. A cancellation **automatically promotes** the next waitlisted student, who is notified. Organisers create events with their own registration questions, check people in, export attendees and view analytics.
 
+Every user also has a personal to-do list, **My tasks**, where they can add, view, edit, tick off and delete tasks. It is the simplest create/read/update/delete example in the app: React → `/api/v1/tasks` → PostgreSQL.
+
 ![Catalogue](docs/screenshots/01-catalogue.png)
 
 **Live demo:** <https://seatsure-production.up.railway.app> (deployed on Railway, see [Deployment](#deployment-railway)). Pick a demo user in the header to start.
 
-**Reports:** the three subject reports (Full Stack, Back-End, Advanced Database) are in [`docs/reports/`](docs/reports/) as PDF and Word files.
+**Reports:** for each course (Full Stack, Back-End, Advanced Database) there is a short report, `SeatSure_Report_<Course>_BhavyaSharma.pdf` (10 pages, following the submission guidelines), and a detailed report, `SeatSure_DetailedReport_<Course>_BhavyaSharma.pdf`. All six are in [`docs/reports/`](docs/reports/) as PDF and Word files.
 
 ## Submission contents
 
 | Required item | Where it is |
 |---|---|
-| Frontend source | [`client/`](client/) (React + Vite), with `client/package.json` |
-| Backend source | [`server/`](server/) (Express API), with `server/package.json`. The data-access layer is [`db/`](db/) (`db/package.json`), kept separate as the project brief requires |
-| Database schema and seed | [`db/schema.sql`](db/schema.sql) (complete PostgreSQL schema), [`db/prisma/migrations/`](db/prisma/migrations/) (the same schema as versioned migrations), [`db/prisma/seed.ts`](db/prisma/seed.ts) + `seed-data.ts` (seed script, `npm run db:seed`). MongoDB only holds data derived from PostgreSQL and is rebuilt from it through the outbox, so no MongoDB export is needed |
+| Frontend source | [`frontend/`](frontend/) (React + Vite), with `frontend/package.json` |
+| Backend source | [`backend/`](backend/) (Express API), with `backend/package.json`. The data-access layer is [`db/`](db/) (`db/package.json`), kept as a separate package |
+| Database dump, schema and seed | [`db/seatsure_dump.sql`](db/seatsure_dump.sql) (full `pg_dump` with the seed data: 230 users, 30 events, 2515 registrations, 46 tasks), [`db/schema.sql`](db/schema.sql) (the schema alone), [`db/prisma/migrations/`](db/prisma/migrations/) (the same schema as versioned migrations), [`db/prisma/seed.ts`](db/prisma/seed.ts) + `seed-data.ts` (seed script, `npm run db:seed`). MongoDB only holds data derived from PostgreSQL and is rebuilt from it through the outbox, so no MongoDB export is needed |
 | Screenshots | [`docs/screenshots/`](docs/screenshots/), indexed by operation (Read, Create, Update, Delete, validation/error) in [`docs/screenshots/README.md`](docs/screenshots/README.md) |
-| Report (PDF) | At the root of the submission ZIP, and in [`docs/reports/`](docs/reports/) |
+| Report (PDF) | At the root of each submission ZIP: the short report (problem and CRUD over REST, setup and API reference, the full flow, route mapping and validation on both sides, test cases) and the detailed report for that course. All reports are also in [`docs/reports/`](docs/reports/) |
 | Test cases | [`docs/testing/`](docs/testing/) (tables with expected and actual results), [`docs/test-results/`](docs/test-results/) (raw outputs, including `api-checks.txt`: live CRUD requests against the running API) |
 
 `node_modules/` and `.env` files are not included: run `npm install` and copy `.env.example` to `.env` (see Quick start).
@@ -39,7 +41,7 @@ npm install
 ```
 
 ```bash
-cp .env.example .env && cp client/.env.example client/.env
+cp .env.example .env && cp frontend/.env.example frontend/.env
 ```
 
 Edit `.env`: in `DATABASE_URL` and `DATABASE_URL_TEST`, replace `YOUR_USERNAME` with the output of `whoami`.
@@ -52,7 +54,7 @@ npm run setup
 npm run dev
 ```
 
-- `npm run setup` creates `seatsure_dev` and `seatsure_test`, applies the migrations and loads the seed data.
+- `npm run setup` creates `seatsure_dev` and `seatsure_test`, applies the migrations and loads the seed data. To use the dump instead: `createdb seatsure_dev && psql -d seatsure_dev -f db/seatsure_dump.sql` (the tests still need `npm run db:create`, which also creates `seatsure_test`).
 - `npm run dev` starts the API on http://localhost:4000/api/v1 and the React app on http://localhost:5173.
 
 Open **http://localhost:5173** and pick a demo user in the top-right menu:
@@ -79,8 +81,8 @@ Windows: install PostgreSQL 18 from postgresql.org and use `postgresql://postgre
 
 | File | Used by | Key variables |
 |---|---|---|
-| `.env` (copy of `.env.example`) | `/db`, `/server`, tests | `DATABASE_URL`, `DATABASE_URL_TEST` (a separate database: tests wipe it), `DB_POOL_MAX`, `MONGODB_URI`, `PORT`, `CORS_ORIGIN` |
-| `client/.env` (copy of `client/.env.example`) | Vite | `VITE_API_URL=http://localhost:4000/api/v1` |
+| `.env` (copy of `.env.example`) | `/db`, `/backend`, tests | `DATABASE_URL`, `DATABASE_URL_TEST` (a separate database: tests wipe it), `DB_POOL_MAX`, `MONGODB_URI`, `PORT`, `CORS_ORIGIN` |
+| `frontend/.env` (copy of `frontend/.env.example`) | Vite | `VITE_API_URL=http://localhost:4000/api/v1` |
 
 Never commit the real `.env` files (they are in `.gitignore`).
 
@@ -94,17 +96,17 @@ Never commit the real `.env` files (they are in `.gitignore`).
 | `npm run db:seed` | Wipes and reloads deterministic demo data: 8 clubs, 8 venues, 230 users, 30 events, about 2,500 registrations |
 | `npm run db:reset` | Drops everything, re-migrates and re-seeds |
 | `npm run dev` | API (nodemon + tsx) and React (Vite) together via `concurrently` |
-| `npm test` | All 138 automated tests (database, backend, client) |
-| `npm run test:db` / `test:server` / `test:client` | One subject's test suite |
+| `npm test` | All 153 automated tests (database, backend, frontend) |
+| `npm run test:db` / `test:backend` / `test:frontend` | One subject's test suite |
 | `npm run demo:concurrency -- --seats 10 --students 50` | Live race demo against the running API |
-| `npm run test:api` | Live CRUD-over-REST checks against the running API (create, read, update, delete, invalid input, missing id); writes `docs/test-results/api-checks.txt` |
+| `npm run test:api` | Live CRUD-over-REST checks against the running API: 7 for tasks (including the guideline examples: create 201, empty title 400, `DELETE /tasks/99` 404) and 14 for events and registrations; writes `docs/test-results/api-checks.txt` |
 | `npm run bench:explain` | EXPLAIN ANALYZE before/after for each index on 50k events / 200k registrations, in a throwaway `seatsure_bench` database |
 | `npm run report:bundle` | Production build, then the gzipped JavaScript a student downloads on a first visit vs what the organiser area adds (`docs/test-results/bundle-split.json`) |
 | `npm run experiment:pool -w @seatsure/db` | Connection-pool experiment (Advanced Database M2.13) |
 | `npm run experiment:race -w @seatsure/db` | No-lock vs `FOR UPDATE` race experiment (uses the test database) |
 | `npm run studio -w @seatsure/db` | Prisma Studio (browse the tables) |
 
-**Latest results: 138 / 138 tests passed** (47 database, 64 backend, 27 client). Raw outputs of the recorded run (26 Oct 2026) are in `docs/test-results/`. The suite was re-run on 27 Oct 2026 after the final documentation changes, again 138 / 138. Live API checks against the running server (`npm run test:api`, 27 Oct 2026): 14 / 14 as expected. Test-case tables (ID, concept, scenario, input, expected, actual, pass/fail) are in `docs/testing/`.
+**Latest results: 153 / 153 tests passed** (50 database, 71 backend, 32 frontend), recorded on 27 Oct 2026; raw outputs are in `docs/test-results/`. Live API checks against the running server (`npm run test:api`, 27 Oct 2026): 21 / 21 as expected. Test-case tables (ID, concept, scenario, input, expected, actual, pass/fail) are in `docs/testing/`.
 
 ---
 
@@ -165,11 +167,11 @@ As in development, identity is the demo user switcher (`X-User-Id`), not real au
 
 ```mermaid
 flowchart LR
-  subgraph Client["/client · React (Vite)"]
+  subgraph Frontend["/frontend · React (Vite)"]
     UI[Pages and components] --> Hooks[Feature hooks<br/>TanStack Query]
     Hooks --> Svc[services/ · Axios instance<br/>+ interceptors]
   end
-  subgraph Server["/server · Express API /api/v1"]
+  subgraph Backend["/backend · Express API /api/v1"]
     MW[Middleware pipeline<br/>requestId → timer → CORS → JSON 10kb] --> R[routes/] --> V[validators/<br/>express-validator] --> C[controllers/<br/>thin] --> S[services/<br/>domain rules, transactions]
     S --> Bus((EventEmitter bus))
     D[Outbox dispatcher<br/>retry · backoff · timeout] --> Bus
@@ -203,17 +205,17 @@ More detail: [`docs/er-diagram.md`](docs/er-diagram.md) (ER diagram, normalisati
 
 ```
 seatsure/
-├── client/                 FULL STACK: React 19 + Vite + React Router v6 + TanStack Query + Axios + React Hook Form
+├── frontend/               FULL STACK: React 19 + Vite + React Router v6 + TanStack Query + Axios + React Hook Form
 │   └── src/
 │       ├── app/            router (lazy nested routes), QueryClient defaults
 │       ├── layouts/        AppLayout (header, Outlet, error boundary, Suspense)
 │       ├── services/       Axios instance + interceptors, one module per API area
-│       ├── features/       events/, registrations/, organiser/, notifications/, users/ (each with hooks/ + barrel)
+│       ├── features/       events/, registrations/, tasks/, organiser/, notifications/, users/ (each with hooks/ + barrel)
 │       └── shared/         Card (compound), Field, Pagination, Toast (context), hooks, query-key factory
-├── server/                 BACKEND: Express 5 REST API
+├── backend/                BACKEND: Express 5 REST API
 │   └── src/
 │       ├── app.js          middleware pipeline (order matters) + routers + 404 + error handler
-│       ├── routes/         one Router per resource, /api/v1 + deprecated /api alias
+│       ├── routes/         one Router per resource (events, registrations, tasks, me, analytics), /api/v1 + deprecated /api alias
 │       ├── validators/     express-validator chains
 │       ├── controllers/    thin: extract → call → format
 │       ├── services/       business rules + workflows (rules/eventRules.js is pure functions)
@@ -222,11 +224,11 @@ seatsure/
 │       ├── utils/          AppError, asyncHandler, retry/withTimeout/backoff, respond, logger
 │       └── config/         env-driven configuration
 ├── db/                     ADVANCED DATABASE: PostgreSQL schema + migrations, Prisma 7, MongoDB
-│   ├── prisma/             schema.prisma, migrations/ (init, CHECK constraints, outbox key), seed.ts
-│   ├── src/                client (pool), transaction, errors, repositories/, mongo/, bench/
-│   ├── scripts/            explain-benchmark.ts, pool-experiment.ts
+│   ├── prisma/             schema.prisma, migrations/ (init, CHECK constraints, outbox key, tasks), seed.ts
+│   ├── src/                Prisma client (pool), transaction, errors, repositories/, mongo/, bench/
+│   ├── scripts/            explain-benchmark.ts, pool-experiment.ts, race-experiment.ts, seed-if-empty.ts
 │   └── tests/              constraints, transactions, queries, indexes, mongo
-├── scripts/                create-databases.mjs, concurrency-demo.mjs
+├── scripts/                create-databases.mjs, concurrency-demo.mjs, api-checks.mjs, bundle-report.mjs
 └── docs/                   er-diagram.md, testing/ (test-case tables), test-results/ (raw outputs), screenshots/
 ```
 
@@ -251,6 +253,9 @@ Success responses use `{ "status": "success", "data": …, "meta"?: … }`. Erro
 | GET | `/events/:id/activity` | anyone | MongoDB activity feed (`meta.degraded` if MongoDB is down) |
 | DELETE | `/registrations/:id` | owner or organiser | Cancel (+ automatic promotion) |
 | PATCH | `/registrations/:id` `{checkedIn:true}` | organiser | Check in (idempotent) |
+| GET | `/tasks` | user | My tasks, open first, with `meta {total, open, done}` |
+| POST | `/tasks` `{title, notes?, dueDate?}` | user | Create a task: 201 + `Location` (empty title: 400) |
+| GET · PATCH · DELETE | `/tasks/:id` | owner | Read · edit or tick done `{title?, notes?, dueDate?, completed?}` · delete (204). Another user's or a missing task: 404 |
 | GET | `/analytics/overview?scope=mine\|all` · `/analytics/activity` | organiser | Window-function reports · MongoDB aggregations |
 | POST | `/dev/mongo/outage` · `/dev/mongo/restore` | organiser, dev only | Graceful-degradation demo |
 | GET | `/api/events` | anyone | **Deprecated** alias (sends `Deprecation`, `Sunset` and `Link` headers) |
@@ -259,9 +264,9 @@ Success responses use `{ "status": "success", "data": …, "meta"?: … }`. Erro
 
 ## Traceability matrix
 
-Every concept is tagged in the code as `// [FULLSTACK|BACKEND|DATABASE Mx.y: Concept]`. Run `grep -rn "\[BACKEND M" server/src` (and the same for the other two tags) to list them. Module numbers are the livebook lesson numbers in [`../concepts.md`](../concepts.md). Test IDs link to `docs/testing/`.
+Every concept is tagged in the code as `// [FULLSTACK|BACKEND|DATABASE Mx.y: Concept]`. Run `grep -rn "\[BACKEND M" backend/src` (and the same for the other two tags) to list them. Module numbers are the livebook lesson numbers in [`../concepts.md`](../concepts.md). Test IDs link to `docs/testing/`.
 
-### Full Stack Web Development (`/client`)
+### Full Stack Web Development (`/frontend`)
 
 | Module | Concept | Files / functions | How to demo | Test IDs |
 |---|---|---|---|---|
@@ -274,8 +279,8 @@ Every concept is tagged in the code as `// [FULLSTACK|BACKEND|DATABASE Mx.y: Con
 | M1.10 | Nested / layout routes | `app/router.jsx`; `layouts/AppLayout.jsx`, `features/organiser/OrganiserLayout.jsx` (`<Outlet/>`) | Organiser tabs keep the shared chrome | FS-T24, FS-T25, FS-T26 |
 | M1.11 | `useReducer` | `features/events/state/filtersReducer.js`; `EventsPage.jsx` | Category chips / "Clear filters" | FS-T01–T03 |
 | M1.12 | Compound components / slots | `shared/components/Card.jsx` (`Card.Header/Body/Footer`, `title`/`actions` slots) used by every card | Same Card in catalogue, passes, panels | (all UI tests) |
-| M1.13 | Feature-based architecture | `client/src/features/*` + barrels, `shared/`, `services/` | Folder tour | — |
-| M2.1 | CORS, env, both servers | `server/src/app.js` (`cors` allowlist); `.env.example`, `client/.env.example`; root `npm run dev` (`concurrently`) | `npm run dev`: every API call from :5173 to :4000 is cross-origin | — (no automated CORS test) |
+| M1.13 | Feature-based architecture | `frontend/src/features/*` + barrels, `shared/`, `services/` | Folder tour | — |
+| M2.1 | CORS, env, both servers | `backend/src/app.js` (`cors` allowlist); `.env.example`, `frontend/.env.example`; root `npm run dev` (`concurrently`) | `npm run dev`: every API call from :5173 to :4000 is cross-origin | — (no automated CORS test) |
 | M2.2 | Axios instance + `VITE_API_URL` | `services/apiClient.js` (`apiClient`, `unwrap`) | — | FS-T05 |
 | M2.3–2.4 | TanStack Query: QueryClient, caching, `staleTime` | `app/queryClient.js`; `features/events/hooks/useEvents.js` | "Updating…" pill while refetching in the background | FS-T16 |
 | M2.5 | Filters → query params | `EventFilters.jsx` → `useEventsInfinite(params)` → `eventsApi.list` | Change filters: new request, new cache entry | FS-T17, FS-T18 |
@@ -284,17 +289,18 @@ Every concept is tagged in the code as `// [FULLSTACK|BACKEND|DATABASE Mx.y: Con
 | M2.9 | RHF + mutation + server errors | `RegistrationPanel.jsx` `onSubmit` (`setError`); `EventFormPage.jsx`; `shared/lib/format.js` (`toFormField`) | Server 422 shows under the field | FS-T10, FS-T21 |
 | M2.10 | Axios interceptors, retry config | `services/apiClient.js` (`toApiError`, 401 → `/choose-user`); `app/queryClient.js` (no 4xx retries) | Clear the user, then try to register | FS-T06–T08 |
 | M2.11 | Custom API hooks + key factory | `shared/lib/queryKeys.js`; `features/*/hooks/*` | — | (all hook tests) |
-| M3.1–3.2 | Prisma connected to Express | `db/src/client.ts` (`prisma`); `server/src/container.js` | — | BE-I01 |
+| M3.1–3.2 | Prisma connected to Express | `db/src/client.ts` (`prisma`); `backend/src/container.js` | — | BE-I01 |
 | M3.3 | `include` / `select` / `_count` | `db/src/repositories/eventRepository.ts` (`cardSelect`, `findDetail`) | Event page waitlist count | DB-Q02 |
-| M3.4 | Prisma errors P2002 / P2025 in the UI | `db/src/errors.ts` → `server/src/middleware/errorHandler.js` → toast | Register twice: "already registered" | BE-U28, BE-I14 |
+| M3.4 | Prisma errors P2002 / P2025 in the UI | `db/src/errors.ts` → `backend/src/middleware/errorHandler.js` → toast | Register twice: "already registered" | BE-U28, BE-I14 |
 | M3.5 | Nested include data in React | `features/registrations/PassCard.jsx` | My passes (event → club → venue) | FS-T13 |
 | M3.7 | Filtering & sorting end-to-end | `EventFilters` → `events.validators.js` → `eventRepository.listPublished` | Sort "Most popular" | FS-T17, BE-I05, DB-Q02 |
 | M3.8 | Offset pagination | `OrganiserHome.jsx`, `AttendeesPage.jsx`, `shared/components/Pagination.jsx` | Attendees page 2 | BE-I17, DB-Q09 |
 | M3.9 | Cursor pagination + `useInfiniteQuery` | `useEventsInfinite` (`useEvents.js`); `eventRepository.listPublished` (`cursor`, `take: limit+1`) | Scroll the catalogue | FS-T16, BE-I04, DB-Q01 |
 | M3.11 | Infinite scroll (IntersectionObserver) | `useIntersectionObserver.js` + sentinel in `EventsPage.jsx` | Scroll to the bottom | FS-T16 |
 | M3.12 | Polling, `refetchOnWindowFocus`, `staleTime` | `useEvent` (5 s), `useNotifications` (15 s), catalogue (30 s) | Two windows: seats update live | FS-E06 |
+| M1.6, M2.6–2.9 | Tasks CRUD in the UI: form validation, mutations, optimistic tick, server errors on fields | `features/tasks/TasksPage.jsx`, `TaskItem.jsx`, `hooks/useTasks.js`; `services/tasksApi.js` | My tasks: add, tick done, edit, delete | FS-T28–T32 |
 
-### Back-End Web Development (`/server`)
+### Back-End Web Development (`/backend`)
 
 | Module | Concept | Files / functions | How to demo | Test IDs |
 |---|---|---|---|---|
@@ -315,6 +321,7 @@ Every concept is tagged in the code as `// [FULLSTACK|BACKEND|DATABASE Mx.y: Con
 | M3.10 | API versioning + deprecation | `routes/index.js` (`/api/v1`, `/api/events` alias); `middleware/deprecation.js` | `curl -i /api/events` | BE-I03 |
 | M3.11 | Reliability: retries, timeouts, backoff, graceful degradation | `utils/retry.js`; `events/outboxDispatcher.js`; `services/feedService.js`, `analyticsService.activity` | Analytics → "Simulate MongoDB outage" | BE-U13, BE-U31–U37, BE-I25 |
 | M3.12 | Event-driven (EventEmitter bus) | `events/eventBus.js` (`publish`); `events/subscribers/*`; dispatcher | Register → notification appears | BE-U34, BE-I24, BE-I26 |
+| M1.5, M1.13–1.15 | CRUD over REST: the tasks resource | `routes/tasks.routes.js`, `validators/tasks.validators.js`, `controllers/tasks.controller.js`, `services/taskService.js` | `npm run test:api` (API-01–07) | BE-I27–I33 |
 
 ### Advanced Database Systems (`/db`)
 
@@ -340,6 +347,7 @@ Every concept is tagged in the code as `// [FULLSTACK|BACKEND|DATABASE Mx.y: Con
 | M3.8 | Embedding vs referencing | `ActivityLog.ts` (embedded snapshots + id references) | — | DB-M10 |
 | M3.19 | TTL indexes, `$jsonSchema`, dual-write problem | `Notification.ts` (TTL), `jsonSchemas.ts`, `connection.ts` (`ensureCollections`); outbox (`outboxRepository.ts`) | Outage demo | DB-M03–M05, BE-I25 |
 | M3.20 | Index design proven with `explain()` | `ActivityLog.ts` compound index | — | DB-M09 |
+| M1.6, M1.10, M2.8 | Tasks table: CHECK constraints, ON DELETE CASCADE, composite index, Prisma CRUD | `prisma/schema.prisma` (`Task`), `migrations/*_tasks`, `src/repositories/taskRepository.ts` | psql: `\d tasks` | DB-C14–C16 |
 
 ---
 

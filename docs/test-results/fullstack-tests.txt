@@ -1,69 +1,11 @@
-SeatSure - Full Stack (client) test run (2026-10-26 15:52 IST)
-Command: npm run test:client  (vitest + React Testing Library + jsdom)
+SeatSure - Full Stack (frontend) test run (2026-10-27 09:44 IST)
+Command: npm run test:frontend -- --reporter=verbose  (vitest + React Testing Library + jsdom)
+
+ RUN  v5.0.5 /Users/bhavya-mac/Library/Application Support/Claude/scratch-workspaces/a58b660e-d3f6-4e01-b109-50215fe17b1d/50bdc7e8-3790-4e2e-805e-3ecc96ab6cfd/scratch-2026-10-26-f27014/seatsure/frontend
 
 
- RUN  v5.0.5 /Users/bhavya-mac/Library/Application Support/Claude/scratch-workspaces/a58b660e-d3f6-4e01-b109-50215fe17b1d/50bdc7e8-3790-4e2e-805e-3ecc96ab6cfd/scratch-2026-10-26-f27014/seatsure/client
-
- ✓ src/shared/hooks/useDebouncedValue.test.jsx > useDebouncedValue > FS-T04 only publishes the value after typing pauses 154ms
-stderr | src/features/events/EventCard.test.jsx > EventCard performance > FS-T27 React.memo: re-rendering the list re-renders only the card whose data changed
-⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
-⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
-
- ✓ src/features/events/EventCard.test.jsx > EventCard performance > FS-T27 React.memo: re-rendering the list re-renders only the card whose data changed 200ms
- ✓ src/services/apiClient.test.js > apiClient > FS-T05 sends the current demo user as X-User-Id 9ms
- ✓ src/services/apiClient.test.js > apiClient > FS-T06 turns a validation failure into ApiError with per-field messages 10ms
- ✓ src/services/apiClient.test.js > apiClient > FS-T07 a 401 calls the unauthorised handler (redirect to the user chooser) 9ms
- ✓ src/services/apiClient.test.js > apiClient > FS-T08 a dead server becomes a friendly network error (status 0) 5ms
-stderr | src/features/registrations/MyPassesPage.test.jsx > MyPassesPage > FS-T13 renders nested event -> club -> venue data from one response
-⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
-⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
-
-stderr | src/features/organiser/AnalyticsPage.test.jsx > AnalyticsPage > FS-T22 contains a chart crash inside its boundary and recovers when fixed
-⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
-⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
-
-stderr | src/features/events/EventsPage.test.jsx > EventsPage > FS-T16 loads the next page with the cursor when the sentinel scrolls into view
-⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
-⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
-
-stderr | src/app/router.test.jsx > router > FS-T24 /organiser lazy-loads the organiser layout and its index page inside the app layout
-⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
-
- ✓ src/features/events/EventsPage.test.jsx > EventsPage > FS-T16 loads the next page with the cursor when the sentinel scrolls into view 401ms
-stderr | src/features/events/RegistrationPanel.test.jsx > RegistrationPanel > FS-T09 builds one field per custom question and blocks an incomplete form on the client
-⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
-⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
-
-stderr | src/features/organiser/EventFormPage.test.jsx > EventFormPage > FS-T19 enforces cross-field rules before sending anything
-⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
-⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
-
- ✓ src/features/registrations/MyPassesPage.test.jsx > MyPassesPage > FS-T13 renders nested event -> club -> venue data from one response 179ms
- ✓ src/app/router.test.jsx > router > FS-T24 /organiser lazy-loads the organiser layout and its index page inside the app layout 763ms
- ✓ src/features/events/RegistrationPanel.test.jsx > RegistrationPanel > FS-T09 builds one field per custom question and blocks an incomplete form on the client 734ms
- ✓ src/features/events/RegistrationPanel.test.jsx > RegistrationPanel > FS-T10 shows a server-side answer error under the matching field 345ms
- ✓ src/app/router.test.jsx > router > FS-T25 "/" redirects to /events, and unknown paths get the not-found page inside the layout 377ms
- ✓ src/features/registrations/MyPassesPage.test.jsx > MyPassesPage > FS-T14 cancel is optimistic, and rolls back when the server refuses 947ms
- ✓ src/features/registrations/MyPassesPage.test.jsx > MyPassesPage > FS-T15 after a successful cancel the list is re-fetched from the server 105ms
- ✓ src/features/organiser/AnalyticsPage.test.jsx > AnalyticsPage > FS-T22 contains a chart crash inside its boundary and recovers when fixed 1264ms
- ✓ src/features/organiser/AnalyticsPage.test.jsx > AnalyticsPage > FS-T23 shows MongoDB degradation without hiding PostgreSQL reports 66ms
- ✓ src/features/events/EventsPage.test.jsx > EventsPage > FS-T17 a category chip changes the query params (new cache key, new request) 763ms
- ✓ src/features/events/RegistrationPanel.test.jsx > RegistrationPanel > FS-T11 a successful registration shows the outcome 213ms
- ✓ src/features/events/RegistrationPanel.test.jsx > RegistrationPanel > FS-T12 asks anonymous visitors to choose a demo user first 54ms
- ✓ src/app/router.test.jsx > router > FS-T26 unknown paths render the lazy not-found page with the header still present 355ms
- ✓ src/features/organiser/EventFormPage.test.jsx > EventFormPage > FS-T19 enforces cross-field rules before sending anything 1542ms
- ✓ src/features/events/EventsPage.test.jsx > EventsPage > FS-T18 search is debounced: one request after typing stops 426ms
- ✓ src/features/events/state/filtersReducer.test.js > filtersReducer > FS-T01 toggles a category chip on and off 3ms
- ✓ src/features/events/state/filtersReducer.test.js > filtersReducer > FS-T02 reset clears every filter at once; unknown actions are a bug 3ms
- ✓ src/features/events/state/filtersReducer.test.js > filtersReducer > FS-T03 only non-empty filters become query params 1ms
- ✓ src/features/organiser/EventFormPage.test.jsx > EventFormPage > FS-T20 adds and removes custom questions with useFieldArray 315ms
- ✓ src/features/organiser/EventFormPage.test.jsx > EventFormPage > FS-T21 sends a clean payload and shows server field errors on the right input 589ms
-
- Test Files  10 passed (10)
-      Tests  27 passed (27)
-   Start at  15:52:21
-   Duration  8.13s (environment 57%, tests 18%, setup 13%, import 9%, transform 2%, worker 1%)
-
-    Isolate  10 workers spawned · ~3.73s startup each (spawn + environment, per file)
-             at least ~414ms faster with isolate: false — reuses workers across files instead of one per file
+ Test Files  11 passed (11)
+      Tests  32 passed (32)
+   Start at  09:44:16
+   Duration  2.66s (environment 51%, tests 24%, setup 13%, import 9%, transform 2%)
 

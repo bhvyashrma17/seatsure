@@ -1,19 +1,26 @@
-SeatSure live API checks - 2026-10-27T03:14:15.483Z
+SeatSure live API checks - 2026-10-27T04:13:46.839Z
 API: http://localhost:4000/api/v1 (paths below are relative to it). Organiser: Aarav Mehta; student: Priya Singh.
 
-API-01 | Read (list)           | GET /events?limit=3 | expected 200, 3 events + nextCursor | actual 200 3 events, nextCursor 31 | Pass
-API-02 | Create                | POST /events {title:"API check: Git workshop", …} | expected 201 + Location, status DRAFT | actual 201 DRAFT, Location /api/v1/events/32 | Pass
-API-03 | Invalid input         | POST /events {title:"", capacity:0, …} | expected 400 VALIDATION_ERROR for title and capacity | actual 400 VALIDATION_ERROR (title, capacity) | Pass
-API-04 | Read (one)            | GET /events/32 | expected 200, the new draft | actual 200 "API check: Git workshop" (DRAFT) | Pass
-API-05 | Update                | PATCH /events/32 {title:"… (updated)"} | expected 200, new title | actual 200 "API check: Git workshop (updated)" | Pass
-API-06 | Delete                | DELETE /events/32 | expected 204 No Content | actual 204 No Content | Pass
-API-07 | Missing ID            | DELETE /events/32 (again) | expected 404 not found | actual 404 EVENT_NOT_FOUND | Pass
-API-08 | Update (workflow)     | PATCH /events/33 {status:"PUBLISHED"} | expected 200, PUBLISHED | actual 200 PUBLISHED | Pass
-API-09 | Create (registration) | POST /events/33/registrations {answers:{}} | expected 201, CONFIRMED | actual 201 CONFIRMED | Pass
-API-10 | Duplicate             | Same request again | expected 409 ALREADY_REGISTERED | actual 409 ALREADY_REGISTERED | Pass
-API-11 | Missing user          | Same request without X-User-Id | expected 401 | actual 401 UNAUTHENTICATED | Pass
-API-12 | Delete (cancel)       | DELETE /registrations/2567 | expected 200, cancelled | actual 200 previous status CONFIRMED | Pass
-API-13 | Missing ID            | DELETE /registrations/99999 | expected 404 not found | actual 404 REGISTRATION_NOT_FOUND | Pass
-API-14 | Unknown route         | GET /does-not-exist | expected 404 ROUTE_NOT_FOUND | actual 404 ROUTE_NOT_FOUND | Pass
+API-01 | Create                | POST /tasks {title:"Buy notebook"} | expected 201 new task | actual 201 id 48, completed false, Location /api/v1/tasks/48 | Pass
+API-02 | Invalid input         | POST /tasks {title:""} | expected 400 error | actual 400 VALIDATION_ERROR: Title is required | Pass
+API-03 | Missing ID            | DELETE /tasks/99 | expected 404 not found | actual 404 TASK_NOT_FOUND | Pass
+API-04 | Read                  | GET /tasks | expected 200, my tasks incl. "Buy notebook" | actual 200 6 tasks (5 to do, 1 done) | Pass
+API-05 | Update (toggle)       | PATCH /tasks/48 {completed:true} | expected 200, done with completedAt | actual 200 completed true, completedAt set | Pass
+API-06 | Update (edit)         | PATCH /tasks/48 {title:"Buy two notebooks"} | expected 200, new title | actual 200 "Buy two notebooks" | Pass
+API-07 | Delete                | DELETE /tasks/48 | expected 204 No Content | actual 204 No Content | Pass
+API-08 | Read (events)         | GET /events?limit=3 | expected 200, 3 events + nextCursor | actual 200 3 events, nextCursor 4 | Pass
+API-09 | Create                | POST /events {title:"API check: Git workshop", …} | expected 201 + Location, status DRAFT | actual 201 DRAFT, Location /api/v1/events/32 | Pass
+API-10 | Invalid input         | POST /events {title:"", capacity:0, …} | expected 400 VALIDATION_ERROR for title and capacity | actual 400 VALIDATION_ERROR (title, capacity) | Pass
+API-11 | Read (one)            | GET /events/32 | expected 200, the new draft | actual 200 "API check: Git workshop" (DRAFT) | Pass
+API-12 | Update                | PATCH /events/32 {title:"… (updated)"} | expected 200, new title | actual 200 "API check: Git workshop (updated)" | Pass
+API-13 | Delete                | DELETE /events/32 | expected 204 No Content | actual 204 No Content | Pass
+API-14 | Missing ID            | DELETE /events/32 (again) | expected 404 not found | actual 404 EVENT_NOT_FOUND | Pass
+API-15 | Update (workflow)     | PATCH /events/33 {status:"PUBLISHED"} | expected 200, PUBLISHED | actual 200 PUBLISHED | Pass
+API-16 | Create (registration) | POST /events/33/registrations {answers:{}} | expected 201, CONFIRMED | actual 201 CONFIRMED | Pass
+API-17 | Duplicate             | Same request again | expected 409 ALREADY_REGISTERED | actual 409 ALREADY_REGISTERED | Pass
+API-18 | Missing user          | Same request without X-User-Id | expected 401 | actual 401 UNAUTHENTICATED | Pass
+API-19 | Delete (cancel)       | DELETE /registrations/2517 | expected 200, cancelled | actual 200 previous status CONFIRMED | Pass
+API-20 | Missing ID            | DELETE /registrations/99999 | expected 404 not found | actual 404 REGISTRATION_NOT_FOUND | Pass
+API-21 | Unknown route         | GET /does-not-exist | expected 404 ROUTE_NOT_FOUND | actual 404 ROUTE_NOT_FOUND | Pass
 
-14 / 14 as expected
+21 / 21 as expected

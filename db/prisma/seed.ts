@@ -1,5 +1,5 @@
-// Seeds realistic, deterministic demo data: 8 clubs, 8 venues, 230 users, 30 events and
-// ~2,500 registrations (confirmed, waitlisted, promoted, cancelled, checked-in).
+// Seeds realistic, deterministic demo data: 8 clubs, 8 venues, 230 users, 30 events,
+// ~2,500 registrations (confirmed, waitlisted, promoted, cancelled, checked-in) and personal to-do tasks.
 // Only PostgreSQL (the source of truth) is written. Each change is also written to the outbox,
 // so when the API starts, the dispatcher replays the history into MongoDB.
 //
@@ -56,7 +56,7 @@ async function main() {
 
   // 1. Start clean (child tables first is handled by CASCADE).
   await prisma.$executeRawUnsafe(
-    'TRUNCATE outbox_events, registrations, events, club_organisers, venues, clubs, users RESTART IDENTITY CASCADE',
+    'TRUNCATE tasks, outbox_events, registrations, events, club_organisers, venues, clubs, users RESTART IDENTITY CASCADE',
   );
   await clearMongoIfConfigured();
 
@@ -237,11 +237,49 @@ async function main() {
   outbox.sort((a, b) => a.at.getTime() - b.at.getTime());
   await prisma.outboxEvent.createMany({ data: outbox.map((m) => ({ type: m.type, payload: m.payload, createdAt: m.at })) });
 
+  // 6. Personal to-do tasks (the tasks CRUD feature). A separate PRNG keeps the event data above identical.
+  const taskCount = await seedTasks(students, organisers);
+
   const counts = await prisma.registration.groupBy({ by: ['status'], _count: true });
   console.log(`✓ ${clubs.length} clubs, ${venues.length} venues, ${organisers.length + students.length} users`);
   console.log(`✓ ${EVENTS.length + 2} events, ${totalRegs} registrations:`, Object.fromEntries(counts.map((c) => [c.status, c._count])));
   console.log('  Tip: re-run the seed on demo day so the "Resume & LinkedIn Review Drop-in" starts about an hour later (check-in demo).');
   console.log(`✓ ${outbox.length} outbox messages queued for MongoDB (delivered when the API starts)`);
+  console.log(`✓ ${taskCount} to-do tasks`);
+}
+
+/** A calendar date on campus (IST) `dayOffset` days from today, stored as a DATE. */
+function campusDate(dayOffset: number): Date {
+  const ist = new Date(now.getTime() + 5.5 * HOUR);
+  return new Date(Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate() + dayOffset));
+}
+
+async function seedTasks(students: { id: number; name: string }[], organisers: { id: number; name: string }[]) {
+  const taskRand = rng(113);
+  type SeedTask = { userId: number; title: string; notes?: string; dueDate?: Date; completed?: boolean };
+  const priya = students.find((s) => s.name === 'Priya Singh')!;
+  const aarav = organisers.find((o) => o.name === 'Aarav Mehta')!;
+  const tasks: SeedTask[] = [
+    { userId: priya.id, title: 'Print my resume for the LinkedIn review', dueDate: campusDate(0) },
+    { userId: priya.id, title: 'Finish the Figma basics tutorial', notes: 'Frames and auto layout, before the Figma workshop', dueDate: campusDate(4) },
+    { userId: priya.id, title: 'Read the transformer paper summary', notes: 'Sections 1-3 before the reading group', dueDate: campusDate(6) },
+    { userId: priya.id, title: 'Bring a laptop charger to HackNight', dueDate: campusDate(12) },
+    { userId: priya.id, title: 'Submit the micro project report', completed: true },
+    { userId: aarav.id, title: 'Book the projector for the portfolio workshop', completed: true },
+    { userId: aarav.id, title: 'Email mentors about HackNight judging', dueDate: campusDate(7) },
+    { userId: aarav.id, title: 'Print attendee badges', notes: 'Use the CSV export from the attendee list', dueDate: campusDate(11) },
+  ];
+  const ideas = ['Revise notes for the quiz', 'Charge the power bank', 'Update my GitHub profile', 'Practise the pitch', 'Buy a notebook', 'Fill in the club feedback form', 'Install Git and VS Code', 'Pack the team T-shirt'];
+  for (const s of students.filter((st) => st.id !== priya.id).slice(0, 40)) {
+    const n = Math.floor(taskRand() * 3);
+    for (let i = 0; i < n; i++) {
+      tasks.push({ userId: s.id, title: ideas[Math.floor(taskRand() * ideas.length)]!, dueDate: taskRand() < 0.6 ? campusDate(Math.floor(taskRand() * 14)) : undefined, completed: taskRand() < 0.3 });
+    }
+  }
+  await prisma.task.createMany({
+    data: tasks.map((t) => ({ ...t, completed: t.completed ?? false, completedAt: t.completed ? new Date(now.getTime() - DAY) : null })),
+  });
+  return tasks.length;
 }
 
 /** A persistent MongoDB (Atlas / local) holds documents derived from the old data: clear them too. */
