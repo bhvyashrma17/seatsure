@@ -15,6 +15,19 @@ Clubs at Alliance University run workshops, hackathons and talks in rooms with a
 
 **Reports:** the three subject reports (Full Stack, Back-End, Advanced Database) are in [`docs/reports/`](docs/reports/) as PDF and Word files.
 
+## Submission contents
+
+| Required item | Where it is |
+|---|---|
+| Frontend source | [`client/`](client/) (React + Vite), with `client/package.json` |
+| Backend source | [`server/`](server/) (Express API), with `server/package.json`. The data-access layer is [`db/`](db/) (`db/package.json`), kept separate as the project brief requires |
+| Database schema and seed | [`db/schema.sql`](db/schema.sql) (complete PostgreSQL schema), [`db/prisma/migrations/`](db/prisma/migrations/) (the same schema as versioned migrations), [`db/prisma/seed.ts`](db/prisma/seed.ts) + `seed-data.ts` (seed script, `npm run db:seed`). MongoDB only holds data derived from PostgreSQL and is rebuilt from it through the outbox, so no MongoDB export is needed |
+| Screenshots | [`docs/screenshots/`](docs/screenshots/), indexed by operation (Read, Create, Update, Delete, validation/error) in [`docs/screenshots/README.md`](docs/screenshots/README.md) |
+| Report (PDF) | At the root of the submission ZIP, and in [`docs/reports/`](docs/reports/) |
+| Test cases | [`docs/testing/`](docs/testing/) (tables with expected and actual results), [`docs/test-results/`](docs/test-results/) (raw outputs, including `api-checks.txt`: live CRUD requests against the running API) |
+
+`node_modules/` and `.env` files are not included: run `npm install` and copy `.env.example` to `.env` (see Quick start).
+
 ---
 
 ## Quick start (macOS, PostgreSQL 18 already installed)
@@ -82,13 +95,14 @@ Never commit the real `.env` files (they are in `.gitignore`).
 | `npm test` | All 138 automated tests (database, backend, client) |
 | `npm run test:db` / `test:server` / `test:client` | One subject's test suite |
 | `npm run demo:concurrency -- --seats 10 --students 50` | Live race demo against the running API |
+| `npm run test:api` | Live CRUD-over-REST checks against the running API (create, read, update, delete, invalid input, missing id); writes `docs/test-results/api-checks.txt` |
 | `npm run bench:explain` | EXPLAIN ANALYZE before/after for each index on 50k events / 200k registrations, in a throwaway `seatsure_bench` database |
 | `npm run report:bundle` | Production build, then the gzipped JavaScript a student downloads on a first visit vs what the organiser area adds (`docs/test-results/bundle-split.json`) |
 | `npm run experiment:pool -w @seatsure/db` | Connection-pool experiment (Advanced Database M2.13) |
 | `npm run experiment:race -w @seatsure/db` | No-lock vs `FOR UPDATE` race experiment (uses the test database) |
 | `npm run studio -w @seatsure/db` | Prisma Studio (browse the tables) |
 
-**Latest results: 138 / 138 tests passed** (47 database, 64 backend, 27 client). Raw outputs of the recorded run (26 Oct 2026) are in `docs/test-results/`. The suite was re-run on 27 Oct 2026 after the final documentation changes, again 138 / 138. Test-case tables (ID, concept, scenario, input, expected, actual, pass/fail) are in `docs/testing/`.
+**Latest results: 138 / 138 tests passed** (47 database, 64 backend, 27 client). Raw outputs of the recorded run (26 Oct 2026) are in `docs/test-results/`. The suite was re-run on 27 Oct 2026 after the final documentation changes, again 138 / 138. Live API checks against the running server (`npm run test:api`, 27 Oct 2026): 14 / 14 as expected. Test-case tables (ID, concept, scenario, input, expected, actual, pass/fail) are in `docs/testing/`.
 
 ---
 

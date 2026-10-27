@@ -25,6 +25,7 @@
     "test:server": "npm run test -w @seatsure/server",
     "test:client": "npm run test -w @seatsure/client",
     "demo:concurrency": "node scripts/concurrency-demo.mjs",
+    "test:api": "node scripts/api-checks.mjs",
     "bench:explain": "npm run bench:explain -w @seatsure/db",
     "report:bundle": "node scripts/bundle-report.mjs"
   },
