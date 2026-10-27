@@ -13,6 +13,8 @@ Clubs at Alliance University run workshops, hackathons and talks in rooms with a
 
 ![Catalogue](docs/screenshots/01-catalogue.png)
 
+**Live demo:** <https://seatsure-production.up.railway.app> (deployed on Railway, see [Deployment](#deployment-railway)). Pick a demo user in the header to start.
+
 **Reports:** the three subject reports (Full Stack, Back-End, Advanced Database) are in [`docs/reports/`](docs/reports/) as PDF and Word files.
 
 ## Submission contents
@@ -132,6 +134,32 @@ Supabase works the same way (*Project settings → Database → Connection strin
 4. Run `npm run db:seed` (it also clears the Atlas collections), then `npm run dev`. The API replays the outbox into Atlas automatically.
 
 ---
+
+## Deployment (Railway)
+
+The live demo is one Railway web service plus two managed databases, in a Railway project named `seatsure`:
+
+| Railway service | What it runs | Key settings |
+|---|---|---|
+| `seatsure` | The Express API and the built React app, on one URL | Build: `npm run build:production` (Prisma client + Vite build). Pre-deploy: `npm run db:deploy` (migrations, then the demo seed only if the database is empty). Start: `npm run start:production`. Health check: `/api/v1/health` |
+| `Postgres` | Managed PostgreSQL | `DATABASE_URL=${{Postgres.DATABASE_URL}}` (private network) |
+| `MongoDB` | Managed MongoDB | `MONGODB_URI=${{MongoDB.MONGO_URL}}/seatsure?authSource=admin` |
+
+Other variables on `seatsure`:
+- `VITE_API_URL=/api/v1`: read at build time, so the browser calls the API on the same origin.
+- `CORS_ORIGIN`
+- `RAILPACK_NODE_VERSION=22`
+- `MONGOMS_DISABLE_POSTINSTALL=1`: skips downloading the development-only in-memory MongoDB.
+
+Useful Railway CLI commands (run from this folder after `railway link`):
+
+| Command | What it does |
+|---|---|
+| `railway up --service seatsure` | Deploy the current code |
+| `railway ssh --service seatsure -- npm run db:seed` | Reload the demo data. This **wipes** the hosted data; do it on demo day so the check-in event starts about an hour later |
+| `railway logs --service seatsure --lines 100` | Recent logs |
+
+As in development, identity is the demo user switcher (`X-User-Id`), not real authentication, so anyone with the URL can act as any demo user. All data is fictional seed data. The MongoDB-outage buttons are development-only and are hidden in the deployed app.
 
 ## Architecture
 
