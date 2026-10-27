@@ -13,6 +13,7 @@
     "migrate:deploy": "prisma migrate deploy && prisma generate",
     "migrate:reset": "prisma migrate reset --force",
     "seed": "tsx prisma/seed.ts",
+    "seed:if-empty": "tsx scripts/seed-if-empty.ts",
     "studio": "prisma studio",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
