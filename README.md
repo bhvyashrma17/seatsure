@@ -17,7 +17,7 @@ Every user also has a personal to-do list, **My tasks**, where they can add, vie
 
 **Live demo:** <https://seatsure-production.up.railway.app> (deployed on Railway, see [Deployment](#deployment-railway)). Pick a demo user in the header to start.
 
-**Reports:** for each course (Full Stack, Back-End, Advanced Database) there is a short report, `SeatSure_Report_<Course>_BhavyaSharma.pdf` (10 pages, following the submission guidelines), and a detailed report, `SeatSure_DetailedReport_<Course>_BhavyaSharma.pdf`. All six are in [`docs/reports/`](docs/reports/) as PDF and Word files.
+**Reports:** for each course (Full Stack, Back-End, Advanced Database) there is a short report, `SeatSure_Report_<Course>_BhavyaSharma.pdf` (10 pages, following the submission guidelines), and a detailed report, `SeatSure_DetailedReport_<Course>_BhavyaSharma.pdf`. All six are in [`docs/reports/`](docs/reports/) of the GitHub repository as PDF and Word files; each submission ZIP has its course's two PDFs at the top level.
 
 ## Submission contents
 
@@ -27,7 +27,7 @@ Every user also has a personal to-do list, **My tasks**, where they can add, vie
 | Backend source | [`backend/`](backend/) (Express API), with `backend/package.json`. The data-access layer is [`db/`](db/) (`db/package.json`), kept as a separate package |
 | Database dump, schema and seed | [`db/seatsure_dump.sql`](db/seatsure_dump.sql) (full `pg_dump` with the seed data: 230 users, 30 events, 2515 registrations, 46 tasks), [`db/schema.sql`](db/schema.sql) (the schema alone), [`db/prisma/migrations/`](db/prisma/migrations/) (the same schema as versioned migrations), [`db/prisma/seed.ts`](db/prisma/seed.ts) + `seed-data.ts` (seed script, `npm run db:seed`). MongoDB only holds data derived from PostgreSQL and is rebuilt from it through the outbox, so no MongoDB export is needed |
 | Screenshots | [`docs/screenshots/`](docs/screenshots/), indexed by operation (Read, Create, Update, Delete, validation/error) in [`docs/screenshots/README.md`](docs/screenshots/README.md) |
-| Report (PDF) | At the root of each submission ZIP: the short report (problem and CRUD over REST, setup and API reference, the full flow, route mapping and validation on both sides, test cases) and the detailed report for that course. All reports are also in [`docs/reports/`](docs/reports/) |
+| Report (PDF) | At the root of each submission ZIP: the short report (problem and CRUD over REST, setup and API reference, the full flow, route mapping and validation on both sides, test cases) and the detailed report for that course. All six reports are also in [`docs/reports/`](docs/reports/) of the GitHub repository |
 | Test cases | [`docs/testing/`](docs/testing/) (tables with expected and actual results), [`docs/test-results/`](docs/test-results/) (raw outputs, including `api-checks.txt`: live CRUD requests against the running API) |
 
 `node_modules/` and `.env` files are not included: run `npm install` and copy `.env.example` to `.env` (see Quick start).
