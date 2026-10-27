@@ -4,6 +4,8 @@
 // -> service -> repository (@seatsure/db) -> PostgreSQL, and the response travels back the same way.
 import cors from 'cors';
 import express from 'express';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { createEventsController } from './controllers/events.controller.js';
 import { createMiscController } from './controllers/misc.controller.js';
 import { createRegistrationsController } from './controllers/registrations.controller.js';
@@ -40,6 +42,12 @@ export function createApp(container) {
   );
   app.use(express.json({ limit: config.bodyLimit })); // 4. parse JSON, reject bodies over 10 kb (413)
 
+  // Production: serve the built React app. Any GET outside /api returns index.html, so React Router can
+  // handle deep links such as /events/12; API paths still reach the routers and the JSON 404 handler.
+  if (config.clientDist && existsSync(path.join(config.clientDist, 'index.html'))) {
+    app.use(express.static(config.clientDist, { index: false, maxAge: '1h' }));
+    app.get(/^\/(?!api(?:\/|$)).*/, (req, res) => res.sendFile(path.join(config.clientDist, 'index.html')));
+  }
   app.get('/', (req, res) => ok(res, { name: 'SeatSure API', version: 'v1', health: '/api/v1/health' }));
   app.use('/api', createApiRouter({ controllers, auth, config, mongoControl: container.mongoControl })); // 5. routes
 

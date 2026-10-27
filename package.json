@@ -27,7 +27,9 @@
     "demo:concurrency": "node scripts/concurrency-demo.mjs",
     "test:api": "node scripts/api-checks.mjs",
     "bench:explain": "npm run bench:explain -w @seatsure/db",
-    "report:bundle": "node scripts/bundle-report.mjs"
+    "report:bundle": "node scripts/bundle-report.mjs",
+    "build:production": "npm run generate -w @seatsure/db && npm run build -w @seatsure/client",
+    "start:production": "NODE_ENV=production npm run start -w @seatsure/server"
   },
   "devDependencies": {
     "concurrently": "^10.0.6"

@@ -36,4 +36,7 @@ export const config = Object.freeze({
   pagination: Object.freeze({ defaultLimit: 12, maxLimit: 50, defaultPageSize: 20, maxPageSize: 100 }),
   // Developer-only routes (demo identities, simulated MongoDB outage) are never mounted in production.
   enableDevRoutes: env !== 'production',
+  // Production hosting: the API also serves the built React app (client/dist), so the whole site is one
+  // service on one URL and the browser calls the API on the same origin.
+  clientDist: process.env.CLIENT_DIST ?? (env === 'production' ? fileURLToPath(new URL('../../../client/dist/', import.meta.url)) : ''),
 });
